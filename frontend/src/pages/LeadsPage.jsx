@@ -21,6 +21,14 @@ const STATUS_COLOR = {
 
 const EMPTY = { name: "", phone: "", email: "", source: "SITE", status: "NEW", monthlyFeePotential: 0, notes: "" };
 
+function maskPhone(raw) {
+  const d = (raw ?? "").replace(/\D/g, "").slice(0, 11);
+  if (d.length <= 2) return d.length ? `(${d}` : "";
+  if (d.length <= 6) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
+  if (d.length <= 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+  return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+}
+
 export default function LeadsPage() {
   const { clientId: paramClientId } = useParams();
   const clientId = paramClientId ?? decodePayload(getToken())?.clientId;
@@ -53,7 +61,7 @@ export default function LeadsPage() {
   function openEdit(lead) {
     setForm({
       name: lead.name,
-      phone: lead.phone,
+      phone: maskPhone(lead.phone),
       email: lead.email ?? "",
       source: lead.source,
       status: lead.status,
@@ -149,7 +157,7 @@ export default function LeadsPage() {
               {leads.map((lead) => (
                 <tr key={lead.id} className="border-b border-white/5 last:border-0 hover:bg-white/[0.02]">
                   <td className="px-5 py-3 text-white font-medium">{lead.name}</td>
-                  <td className="px-5 py-3 text-slate-300">{lead.phone}</td>
+                  <td className="px-5 py-3 text-slate-300">{maskPhone(lead.phone)}</td>
                   <td className="px-5 py-3 text-slate-300">{SOURCE_LABEL[lead.source] ?? lead.source}</td>
                   <td className="px-5 py-3">
                     <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLOR[lead.status] ?? ""}`}>
@@ -202,7 +210,7 @@ export default function LeadsPage() {
                 </div>
                 <div>
                   <label className="block text-xs text-slate-400 mb-1">Telefone *</label>
-                  <input value={form.phone} onChange={(e) => setField("phone", e.target.value)}
+                  <input value={form.phone} onChange={(e) => setField("phone", maskPhone(e.target.value))}
                     className="input-base w-full" placeholder="(11) 99999-9999" />
                 </div>
                 <div>
