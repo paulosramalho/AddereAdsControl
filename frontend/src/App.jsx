@@ -1,10 +1,42 @@
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { ToastProvider } from "./components/Toast.jsx";
+import { Layout } from "./components/Layout.jsx";
+import { isLoggedIn } from "./lib/auth.js";
+import LoginPage from "./pages/LoginPage.jsx";
+import DashboardPage from "./pages/DashboardPage.jsx";
+import LeadsPage from "./pages/LeadsPage.jsx";
+import ClientsPage from "./pages/ClientsPage.jsx";
+
+function Guard({ children }) {
+  const location = useLocation();
+  if (!isLoggedIn()) return <Navigate to="/login" state={{ from: location }} replace />;
+  return children;
+}
+
 export default function App() {
   return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold text-white">Addere Ads Control</h1>
-        <p className="text-slate-400 mt-2">Em construção</p>
-      </div>
-    </div>
+    <BrowserRouter>
+      <ToastProvider>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route
+            path="/*"
+            element={
+              <Guard>
+                <Layout>
+                  <Routes>
+                    <Route path="/dashboard" element={<DashboardPage />} />
+                    <Route path="/leads" element={<LeadsPage />} />
+                    <Route path="/clients" element={<ClientsPage />} />
+                    <Route path="/clients/:clientId/leads" element={<LeadsPage />} />
+                    <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                  </Routes>
+                </Layout>
+              </Guard>
+            }
+          />
+        </Routes>
+      </ToastProvider>
+    </BrowserRouter>
   );
 }
