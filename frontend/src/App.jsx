@@ -6,6 +6,7 @@ import LoginPage from "./pages/LoginPage.jsx";
 import DashboardPage from "./pages/DashboardPage.jsx";
 import LeadsPage from "./pages/LeadsPage.jsx";
 import ClientsPage from "./pages/ClientsPage.jsx";
+import CampaignsPage from "./pages/CampaignsPage.jsx";
 
 function Guard({ children }) {
   const location = useLocation();
@@ -29,6 +30,8 @@ export default function App() {
                     <Route path="/leads" element={<LeadsPage />} />
                     <Route path="/clients" element={<ClientsPage />} />
                     <Route path="/clients/:clientId/leads" element={<LeadsPage />} />
+                    <Route path="/campaigns" element={<CampaignsPage />} />
+                    <Route path="/clients/:clientId/campaigns" element={<CampaignsPage />} />
                     <Route path="*" element={<Navigate to="/dashboard" replace />} />
                   </Routes>
                 </Layout>

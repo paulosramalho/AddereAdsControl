@@ -4,6 +4,7 @@ import { clearToken, decodePayload, getToken } from "../lib/auth.js";
 const NAV = [
   { to: "/dashboard", label: "Dashboard" },
   { to: "/leads", label: "Leads", hideForSuper: true },
+  { to: "/campaigns", label: "Campanhas", hideForSuper: true },
   { to: "/clients", label: "Clientes", superOnly: true },
 ];
 

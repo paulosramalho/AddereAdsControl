@@ -10,6 +10,7 @@ import clientsRouter from "./routes/clients.js";
 import credentialsRouter from "./routes/credentials.js";
 import dashboardRouter from "./routes/dashboard.js";
 import leadsRouter from "./routes/leads.js";
+import campaignsRouter from "./routes/campaigns.js";
 
 if (process.env.NODE_ENV === "production") {
   try {
@@ -56,6 +57,7 @@ app.get("/health/db", async (_req, res) => {
 app.use("/auth", authRouter);
 app.use("/clients/:clientId/credentials", credentialsRouter);
 app.use("/clients/:clientId/leads", leadsRouter);
+app.use("/clients/:clientId/campaigns", campaignsRouter);
 app.use("/clients", clientsRouter);
 app.use("/dashboard", dashboardRouter);
 
