@@ -43,7 +43,7 @@ router.get("/:id", async (req, res) => {
 router.put("/:id", validateBody(clientSchema.partial()), async (req, res) => {
   const client = await prisma.client
     .update({ where: { id: req.params.id }, data: req.body })
-    .catch(() => null);
+    .catch((err) => { if (err.code === "P2025") return null; throw err; });
   if (!client) return res.status(404).json({ message: "Cliente não encontrado" });
   res.json(client);
 });
@@ -54,7 +54,7 @@ router.patch(
   async (req, res) => {
     const client = await prisma.client
       .update({ where: { id: req.params.id }, data: { status: req.body.status } })
-      .catch(() => null);
+      .catch((err) => { if (err.code === "P2025") return null; throw err; });
     if (!client) return res.status(404).json({ message: "Cliente não encontrado" });
     res.json(client);
   }
