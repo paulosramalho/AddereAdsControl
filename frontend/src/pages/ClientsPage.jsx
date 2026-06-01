@@ -148,6 +148,12 @@ export default function ClientsPage() {
                   Leads
                 </button>
                 <button
+                  onClick={() => navigate(`/clients/${client.id}/campaigns`)}
+                  className="flex-1 text-xs bg-slate-700 hover:bg-slate-600 text-white rounded-lg py-1.5 transition"
+                >
+                  Campanhas
+                </button>
+                <button
                   onClick={() => openEdit(client)}
                   className="flex-1 text-xs bg-slate-700 hover:bg-slate-600 text-white rounded-lg py-1.5 transition"
                 >
