@@ -1,0 +1,322 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum ClientStatus {
+  ACTIVE
+  SUSPENDED
+  TRIAL
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  VIEWER
+}
+
+enum CredentialPlatform {
+  GOOGLE_ADS
+  META_ADS
+  INSTAGRAM
+  ANTHROPIC
+  RESEND
+}
+
+enum LeadSource {
+  SITE
+  INSTAGRAM
+  WHATSAPP
+  REFERRAL
+  OTHER
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  CONVERTED
+  LOST
+}
+
+enum AdPlatform {
+  GOOGLE_ADS
+  META_ADS
+}
+
+enum ContentFormat {
+  REEL
+  CAROUSEL
+  POST
+  STORIES
+}
+
+enum SuggestionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  DONE
+}
+
+enum BoostStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  DONE
+}
+
+enum ScheduledPostStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHING
+  PUBLISHED
+  FAILED
+  CANCELLED
+}
+
+enum PublishFormat {
+  PHOTO
+  CAROUSEL
+  REEL
+  STORY
+}
+
+enum JobStatus {
+  RUNNING
+  SUCCESS
+  FAILED
+}
+
+model Client {
+  id             String       @id @default(cuid())
+  slug           String       @unique
+  name           String
+  status         ClientStatus @default(TRIAL)
+  niche          String?
+  targetAudience String?
+  keywords       String[]
+  contentTone    String?
+  primaryColor   String?
+  logoUrl        String?
+  rssSources     Json?
+  timezone       String       @default("America/Belem")
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  users              User[]
+  credentials        ClientCredential[]
+  leads              Lead[]
+  campaignDaily      CampaignDaily[]
+  instagramPosts     InstagramPost[]
+  contentSuggestions ContentSuggestion[]
+  boostSuggestions   BoostSuggestion[]
+  scheduledPosts     ScheduledPost[]
+  weeklyReports      WeeklyReport[]
+  monthlyGoals       MonthlyGoal[]
+  jobExecutions      JobExecution[]
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         UserRole @default(VIEWER)
+  active       Boolean  @default(true)
+  clientId     String?
+  client       Client?  @relation(fields: [clientId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  refreshTokens RefreshToken[]
+}
+
+model RefreshToken {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+}
+
+model ClientCredential {
+  id         String             @id @default(cuid())
+  clientId   String
+  client     Client             @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  platform   CredentialPlatform
+  key        String
+  value      String
+  expiresAt  DateTime?
+  issuedAt   DateTime?
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+
+  @@unique([clientId, platform, key])
+}
+
+model Lead {
+  id                  String     @id @default(cuid())
+  clientId            String
+  client              Client     @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  name                String
+  phone               String
+  email               String?
+  source              LeadSource
+  status              LeadStatus @default(NEW)
+  monthlyFeePotential Int?
+  notes               String?
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
+}
+
+model CampaignDaily {
+  id           String     @id @default(cuid())
+  clientId     String
+  client       Client     @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  date         DateTime   @db.Date
+  platform     AdPlatform
+  campaignId   String
+  campaignName String
+  impressions  Int        @default(0)
+  clicks       Int        @default(0)
+  spendCents   Int        @default(0)
+  conversions  Int        @default(0)
+  cpc          Int        @default(0)
+  cpm          Int        @default(0)
+  ctr          Float      @default(0)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@unique([clientId, platform, campaignId, date])
+}
+
+model InstagramPost {
+  id          String   @id @default(cuid())
+  clientId    String
+  client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  postId      String
+  mediaType   String
+  caption     String?
+  permalink   String?
+  timestamp   DateTime
+  likes       Int      @default(0)
+  comments    Int      @default(0)
+  reach       Int      @default(0)
+  impressions Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  analysis PostAnalysis?
+
+  @@unique([clientId, postId])
+}
+
+model PostAnalysis {
+  id           String        @id @default(cuid())
+  postId       String        @unique
+  post         InstagramPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  score        Int           @default(0)
+  strengths    String[]
+  improvements String[]
+  reasoning    String?
+  createdAt    DateTime      @default(now())
+}
+
+model ContentSuggestion {
+  id        String           @id @default(cuid())
+  clientId  String
+  client    Client           @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  title     String
+  hook      String?
+  body      String?
+  format    ContentFormat
+  reasoning String?
+  sources   String[]
+  status    SuggestionStatus @default(PENDING)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  scheduledPost ScheduledPost?
+}
+
+model BoostSuggestion {
+  id              String      @id @default(cuid())
+  clientId        String
+  client          Client      @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  postId          String?
+  postCaption     String?
+  suggestedBudget Int
+  estimatedLeads  Int
+  reasoning       String?
+  status          BoostStatus @default(PENDING)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
+
+model ScheduledPost {
+  id                  String              @id @default(cuid())
+  clientId            String
+  client              Client              @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  contentSuggestionId String?             @unique
+  contentSuggestion   ContentSuggestion?  @relation(fields: [contentSuggestionId], references: [id])
+  status              ScheduledPostStatus @default(DRAFT)
+  format              PublishFormat
+  caption             String
+  firstComment        String?
+  mediaUrls           String[]
+  scheduledAt         DateTime
+  publishedAt         DateTime?
+  instagramPostId     String?
+  errorMessage        String?
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+}
+
+model WeeklyReport {
+  id        String   @id @default(cuid())
+  clientId  String
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  weekStart DateTime @db.Date
+  weekEnd   DateTime @db.Date
+  summary   String?
+  insights  String[]
+  data      Json?
+  createdAt DateTime @default(now())
+
+  @@unique([clientId, weekStart])
+}
+
+model MonthlyGoal {
+  id          String   @id @default(cuid())
+  clientId    String
+  client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  month       DateTime @db.Date
+  leadsGoal   Int?
+  budgetCents Int?
+  impressions Int?
+  clicks      Int?
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([clientId, month])
+}
+
+model JobExecution {
+  id        String    @id @default(cuid())
+  clientId  String?
+  client    Client?   @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  jobName   String
+  status    JobStatus @default(RUNNING)
+  details   Json?
+  error     String?
+  startedAt DateTime  @default(now())
+  endedAt   DateTime?
+}
