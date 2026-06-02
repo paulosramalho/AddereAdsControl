@@ -30,7 +30,7 @@ const NICHE_DEFAULTS = {
 };
 
 export function buildSources(client) {
-  const niche = client.niche ?? "generico";
+  const niche = (client.niche ?? "generico").toLowerCase();
   const defaults = NICHE_DEFAULTS[niche] ?? { rss: [], subreddits: [], youtubeQueries: [] };
   const customRss = Array.isArray(client.rssSources) ? client.rssSources : [];
   const keywords = (client.keywords ?? []).slice(0, 3);

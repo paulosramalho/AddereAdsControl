@@ -11,7 +11,7 @@ async function getCred(clientId, key) {
 export async function fetchMetaAdsCampaigns(addereClientId) {
   const [accessToken, adAccountId] = await Promise.all([
     getCred(addereClientId, "access_token"),
-    getCred(addereClientId, "ad_account_id"),
+    getCred(addereClientId, "account_id"),
   ]);
 
   if (!accessToken || !adAccountId) {

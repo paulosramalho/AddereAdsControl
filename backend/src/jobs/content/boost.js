@@ -10,7 +10,7 @@ async function getAnthropicKey(clientId) {
 }
 
 function brtMonthStart() {
-  const brtStr = new Date().toLocaleString("en-CA", { timeZone: "America/Belem" });
+  const brtStr = new Date().toLocaleDateString("en-CA", { timeZone: "America/Belem" });
   const [year, month] = brtStr.split("-");
   return new Date(`${year}-${month}-01T12:00:00Z`);
 }
