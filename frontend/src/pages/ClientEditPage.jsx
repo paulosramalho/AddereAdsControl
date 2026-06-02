@@ -116,8 +116,8 @@ export default function ClientEditPage() {
     try {
       const res = await api.del(`/clients/${clientId}/credentials/${platform}/${key}`);
       if (res.ok) {
+        await load();
         addToast("Credencial removida", "success");
-        load();
       } else {
         addToast("Erro ao remover credencial", "error");
       }
