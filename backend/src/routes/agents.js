@@ -6,14 +6,15 @@ const router = Router();
 router.use(requireAuth, requireSuperAdmin);
 
 const JOB_NAMES = [
-  "ads-collection",
   "instagram-collection",
   "post-analysis",
-  "trending-suggestions",
   "content-suggestions",
+  "trending-suggestions",
+  "ads-collection",
+  "instagram-notify",
+  "publish-scheduled",
   "boost-suggestions",
   "weekly-report",
-  "publish-scheduled",
 ];
 
 router.get("/status", async (req, res) => {

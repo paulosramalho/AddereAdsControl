@@ -3,25 +3,27 @@ import { api } from "../lib/api.js";
 import { useToast } from "../components/Toast.jsx";
 
 const JOB_LABELS = {
-  "ads-collection":       "Coletor de Anúncios",
   "instagram-collection": "Coletor de Posts",
   "post-analysis":        "Analisador de Posts",
-  "trending-suggestions": "Agente de Tendências",
   "content-suggestions":  "Sugestor de Conteúdo",
+  "trending-suggestions": "Agente de Tendências",
+  "ads-collection":       "Coletor de Anúncios",
+  "instagram-notify":     "Notificador",
+  "publish-scheduled":    "Publicador de Posts",
   "boost-suggestions":    "Sugestor de Impulsionamento",
   "weekly-report":        "Relatório Semanal",
-  "publish-scheduled":    "Publicador de Posts",
 };
 
 const JOB_DESCRIPTIONS = {
-  "ads-collection":       "Coleta métricas diárias de campanhas no Google Ads e Meta Ads.",
   "instagram-collection": "Coleta posts e métricas do perfil via Instagram Graph API.",
   "post-analysis":        "Avalia qualidade de cada post com Claude e recomenda ação (Investir, Redirecionar, Remover…).",
-  "trending-suggestions": "Varre 7 fontes — Conjur, JOTA, Migalhas, YouTube BR, Google Trends BR, Reddit BR e Instituições BR — em busca de pautas em alta e sugere 7 posts.",
   "content-suggestions":  "Analisa o histórico do perfil e sugere novos temas e formatos de post.",
+  "trending-suggestions": "Varre 7 fontes — Conjur, JOTA, Migalhas, YouTube BR, Google Trends BR, Reddit BR (r/conselhojuridico + r/direito) e Instituições BR (STJ + Câmara + Senado) — em busca de pautas em alta e sugere 7 posts.",
+  "ads-collection":       "Coleta métricas diárias de campanhas no Google Ads e Meta Ads.",
+  "instagram-notify":     "Envia e-mail diário com posts INVEST/REMOVE e alerta de renovação do token.",
+  "publish-scheduled":    "Publica posts agendados no Instagram (foto + carrossel) — tick a cada 5 min. Gate: IG_PUBLISH_ENABLED.",
   "boost-suggestions":    "Cruza posts orgânicos com tração + análise INVEST + saldo do mês + CPL histórico, e sugere quanto investir em boost por post.",
   "weekly-report":        "Gera relatório semanal consolidado com métricas de anúncios, posts e leads via Claude. Executa toda segunda-feira.",
-  "publish-scheduled":    "Publica posts agendados no Instagram (foto + carrossel) — tick a cada 5 min. Gate: IG_PUBLISH_ENABLED.",
 };
 
 // BRT hours (UTC-3) espelhados do scheduler.js
@@ -32,6 +34,7 @@ const JOB_SCHEDULE = {
   "trending-suggestions": { type: "daily",      hour: 4 },
   "content-suggestions":  { type: "daily",      hour: 5 },
   "boost-suggestions":    { type: "daily",      hour: 6 },
+  "instagram-notify":     { type: "daily",      hour: 7 },
   "weekly-report":        { type: "weekly-mon", hour: 7 },
   "publish-scheduled":    { type: "continuous" },
 };
