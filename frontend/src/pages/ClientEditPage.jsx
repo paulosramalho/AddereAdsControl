@@ -5,6 +5,7 @@ import { useToast } from "../components/Toast.jsx";
 import { ConfirmModal } from "../components/ConfirmModal.jsx";
 
 const PLATFORMS = ["GOOGLE_ADS", "META_ADS", "INSTAGRAM", "ANTHROPIC", "RESEND"];
+const CLIENT_STATUS_LABEL = { TRIAL: "Trial", ACTIVE: "Ativo", SUSPENDED: "Suspenso" };
 
 const PLATFORM_KEYS = {
   GOOGLE_ADS: ["customer_id", "client_id", "client_secret", "refresh_token", "developer_token"],
@@ -208,7 +209,7 @@ export default function ClientEditPage() {
           <span className="text-slate-600">/</span>
           <h1 className="text-xl font-semibold text-white">{client.name}</h1>
           <span className={`text-xs px-2 py-0.5 rounded font-medium ${client.status === "ACTIVE" ? "bg-emerald-900/40 text-emerald-300" : client.status === "SUSPENDED" ? "bg-red-900/40 text-red-300" : "bg-amber-900/40 text-amber-300"}`}>
-            {client.status}
+            {CLIENT_STATUS_LABEL[client.status] ?? client.status}
           </span>
         </div>
         <button
@@ -239,9 +240,9 @@ export default function ClientEditPage() {
             onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))}
             className="bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500"
           >
-            <option value="TRIAL">TRIAL</option>
-            <option value="ACTIVE">ACTIVE</option>
-            <option value="SUSPENDED">SUSPENDED</option>
+            <option value="TRIAL">Trial</option>
+            <option value="ACTIVE">Ativo</option>
+            <option value="SUSPENDED">Suspenso</option>
           </select>
         </div>
         <div className="grid grid-cols-2 gap-4">

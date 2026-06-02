@@ -61,6 +61,55 @@ router.post("/", validateBody(createSchema), async (req, res) => {
   res.status(201).json({ ok: true, user });
 });
 
+const updateSchema = z.object({
+  name: z.string().min(1, "Nome obrigatório").optional(),
+  email: z.string().email("E-mail inválido").optional(),
+  role: z.enum(["ADMIN", "VIEWER"]).optional(),
+  password: z.string().min(8, "Mínimo 8 caracteres").optional(),
+});
+
+router.put("/:userId", validateBody(updateSchema), async (req, res) => {
+  const { clientId, userId } = req.params;
+  const { name, email, role, password } = req.body;
+
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user || user.clientId !== clientId)
+    return res.status(404).json({ ok: false, message: "Usuário não encontrado" });
+
+  if (role && role !== user.role) {
+    const client = await prisma.client.findUnique({
+      where: { id: clientId }, select: { maxAdmins: true, maxViewers: true },
+    });
+    if (role === "ADMIN" && client.maxAdmins !== null) {
+      const count = await prisma.user.count({ where: { clientId, role: "ADMIN" } });
+      if (count >= client.maxAdmins)
+        return res.status(409).json({ ok: false, message: `Limite de ${client.maxAdmins} administrador(es) atingido` });
+    }
+    if (role === "VIEWER" && client.maxViewers !== null) {
+      const count = await prisma.user.count({ where: { clientId, role: "VIEWER" } });
+      if (count >= client.maxViewers)
+        return res.status(409).json({ ok: false, message: `Limite de ${client.maxViewers} visualizador(es) atingido` });
+    }
+  }
+
+  const data = {};
+  if (name !== undefined) data.name = name;
+  if (email !== undefined) data.email = email;
+  if (role !== undefined) data.role = role;
+  if (password !== undefined) data.passwordHash = await bcrypt.hash(password, 12);
+
+  const updated = await prisma.user.update({
+    where: { id: userId },
+    data,
+    select: { id: true, email: true, name: true, role: true, active: true, createdAt: true },
+  }).catch((err) => {
+    if (err.code === "P2002") return null;
+    throw err;
+  });
+  if (!updated) return res.status(409).json({ ok: false, message: "E-mail já em uso" });
+  res.json({ ok: true, user: updated });
+});
+
 router.delete("/:userId", async (req, res) => {
   const { clientId, userId } = req.params;
   if (req.user.id === userId)

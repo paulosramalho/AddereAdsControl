@@ -19,6 +19,13 @@ const STATUS_BADGE = {
   DONE: "bg-blue-900/40 text-blue-300",
 };
 
+const STATUS_LABEL = {
+  PENDING: "Pendente",
+  APPROVED: "Aprovado",
+  DONE: "Concluído",
+  REJECTED: "Rejeitado",
+};
+
 const STATUS_FILTERS = ["PENDING", "APPROVED", "DONE", "REJECTED"];
 
 function SuggestionsTab() {
@@ -91,7 +98,7 @@ function SuggestionsTab() {
                 onClick={() => setStatusFilter(f)}
                 className={`px-3 py-1.5 transition ${statusFilter === f ? "bg-blue-600 text-white" : "text-slate-400 hover:text-white hover:bg-slate-700"}`}
               >
-                {f}
+                {STATUS_LABEL[f] ?? f}
               </button>
             ))}
           </div>
@@ -109,7 +116,7 @@ function SuggestionsTab() {
         <p className="text-slate-400">Carregando...</p>
       ) : suggestions.length === 0 ? (
         <div className="text-slate-400 text-center py-16">
-          Nenhuma sugestão com status {statusFilter}.
+          Nenhuma sugestão com status {STATUS_LABEL[statusFilter] ?? statusFilter}.
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -120,7 +127,7 @@ function SuggestionsTab() {
                   {s.format}
                 </span>
                 <span className={`text-xs px-2 py-0.5 rounded font-medium ${STATUS_BADGE[s.status] ?? ""}`}>
-                  {s.status}
+                  {STATUS_LABEL[s.status] ?? s.status}
                 </span>
               </div>
               <p className="text-white font-medium leading-snug">{s.title}</p>
@@ -222,7 +229,7 @@ function BoostTab() {
               onClick={() => setStatusFilter(f)}
               className={`px-3 py-1.5 transition ${statusFilter === f ? "bg-blue-600 text-white" : "text-slate-400 hover:text-white hover:bg-slate-700"}`}
             >
-              {f}
+              {STATUS_LABEL[f] ?? f}
             </button>
           ))}
         </div>
@@ -232,7 +239,7 @@ function BoostTab() {
         <p className="text-slate-400">Carregando...</p>
       ) : boosts.length === 0 ? (
         <div className="text-slate-400 text-center py-16">
-          Nenhuma sugestão com status {statusFilter}.
+          Nenhuma sugestão com status {STATUS_LABEL[statusFilter] ?? statusFilter}.
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -243,7 +250,7 @@ function BoostTab() {
                   {brlFromCentavos(b.suggestedBudget)}
                 </span>
                 <span className={`text-xs px-2 py-0.5 rounded font-medium ${STATUS_BADGE[b.status] ?? ""}`}>
-                  {b.status}
+                  {STATUS_LABEL[b.status] ?? b.status}
                 </span>
               </div>
               <p className="text-slate-400 text-sm">
@@ -300,15 +307,15 @@ function CalendarTab() {
 }
 
 const TABS = [
-  { key: "suggestions", label: "Sugestões" },
-  { key: "posts", label: "Posts" },
+  { key: "posts", label: "Conteúdo" },
+  { key: "suggestions", label: "Sugestão de Conteúdo" },
   { key: "calendar", label: "Calendário" },
   { key: "boost", label: "Impulsionar" },
 ];
 
 export default function ContentPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const activeTab = searchParams.get("tab") ?? "suggestions";
+  const activeTab = searchParams.get("tab") ?? "posts";
 
   function setTab(key) {
     setSearchParams({ tab: key }, { replace: true });
