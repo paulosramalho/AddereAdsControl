@@ -1,0 +1,117 @@
+# Roadmap de Implementação — Addere Ads Control
+
+Sequência de desenvolvimento definida em 02/06/2026.
+**Ao retomar:** implementar na ordem abaixo, um item por sessão.
+
+---
+
+## Sequência
+
+### Fase 1 — Posts Orgânicos `[ ]`
+
+**Por que primeiro:** dados já existem no banco (`InstagramPost` + `PostAnalysis`) após o job `instagram-collection` + `post-analysis` rodarem. Zero mudança de backend — apenas frontend. Máximo valor com mínimo esforço. Valida o pipeline de IA para o cliente.
+
+**O que fazer:**
+1. Criar `frontend/src/pages/PostsPage.jsx`
+   - Tabela: caption truncada · tipo (REEL/CAROUSEL/IMAGE) · likes · comentários · reach · impressões · data
+   - Badge de análise IA por linha: `INVEST` (score ≥ 7) · `MANTER` · `REDIRECIONAR` · `REMOVER`
+   - Expandir linha → strengths, improvements, reasoning completo
+   - Filtros: tipo de mídia · status de análise
+   - Botão "Analisar posts" → dispara `post-analysis` (padrão AgentsPage: fire-and-forget + polling)
+2. Criar `GET /clients/:clientId/posts` em `backend/src/routes/posts.js`
+   - Retorna `InstagramPost` com `analysis` incluído (Prisma `include`)
+   - Params: `limit`, `offset`, filtros de tipo e score
+3. Registrar rota em `server.js`
+4. Adicionar item "Posts" na nav lateral (`App.jsx` ou componente de sidebar)
+
+**Dependências:** nenhuma — dados já populados após primeiro job.
+
+---
+
+### Fase 2 — Dashboard Expandido `[ ]`
+
+**Por que segundo:** `MonthlyGoal` já está no schema mas sem UI. Gráfico de gasto diário usa `CampaignDaily` que já existe. Self-contained — não interfere em outras páginas.
+
+**O que fazer:**
+1. Instalar `recharts` no frontend
+2. Expandir `DashboardPage.jsx`:
+   - Gráfico de linha: gasto diário (últimos 30 dias) via `CampaignDaily`
+   - Card de meta mensal: leadsGoal vs leads reais + budgetCents vs gasto real (% atingimento)
+   - Mini-ranking top 3 campanhas por conversão
+3. Criar `GET /clients/:clientId/goals/current` e `PUT /clients/:clientId/goals/:month` em nova rota `goals.js`
+4. Modal de edição de meta mensal (SUPER_ADMIN + ADMIN): leads, budget, notas
+
+**Dependências:** dados de `CampaignDaily` — garante que `ads-collection` já rodou ao menos uma vez.
+
+---
+
+### Fase 3 — Conteúdo em Abas `[ ]`
+
+**Por que terceiro:** refactor natural depois que Posts existe. Reorganiza `ContentPage.jsx` em abas sem criar nova lógica — apenas move o que já existe e adiciona a aba de Posts.
+
+**O que fazer:**
+1. Refatorar `ContentPage.jsx` em 4 abas com navegação interna:
+   - **Sugestões** — lista `ContentSuggestion` (código atual, sem mudança)
+   - **Posts** — embute `PostsPage` como componente (não rota separada)
+   - **Calendário** — placeholder "Em breve" até Fase 4
+   - **Impulsionar** — lista `BoostSuggestion` (código atual)
+2. Cada aba preserva filtro de status independente
+3. URL reflete aba ativa: `/content?tab=suggestions` (via `URLSearchParams`)
+4. Remover rota `/posts` separada se foi criada — consolidar tudo em `/content`
+
+**Dependências:** Fase 1 concluída (componente de Posts disponível).
+
+---
+
+### Fase 4 — Calendário Editorial `[ ]`
+
+**Por que quarto:** modelo `ScheduledPost` e job `publish-scheduled` já existem. É a feature mais complexa — requer upload de mídia via R2 e integração com a aba Calendário da Fase 3.
+
+**O que fazer:**
+1. Componente de calendário mensal:
+   - Grade de dias do mês com badges de posts agendados
+   - Clique no badge → modal de detalhes (caption, formato, status, ações)
+   - Status coloridos: DRAFT/SCHEDULED/PUBLISHING/PUBLISHED/FAILED/CANCELLED
+2. Botão "Agendar" nas sugestões aprovadas (`ContentSuggestion.status === "APPROVED"`):
+   - Abre `SchedulePostModal`: escolher data, hora, formato, upload de mídia
+   - Upload vai para R2 via `PUT /clients/:clientId/media/upload`
+   - Cria `ScheduledPost` vinculado à sugestão
+3. Backend: `routes/scheduledPosts.js` com 5 rotas (listar, criar, detalhe, atualizar, cancelar)
+4. Gate de segurança: verificar `IG_PUBLISH_ENABLED` antes de exibir controles de publicação
+
+**Dependências:** Fase 3 (aba Calendário existe como placeholder). R2 configurado (`R2_*` env vars no Render).
+
+---
+
+### Fase 5 — Notificações Configuráveis `[ ]`
+
+**Por que último:** menor impacto imediato. Additive — não quebra nada existente.
+
+**O que fazer:**
+1. Seção "Preferências de Notificação" em `ClientEditPage.jsx`:
+   - Campo de e-mails (separados por vírgula)
+   - Toggles: resumo diário · alerta de token expirando · alerta de campanha acima do budget
+2. Salvar em `ClientCredential` (platform `RESEND`, key `notify_emails`)
+3. `instagram-notify` lê a credencial em vez de variável de ambiente
+4. Adicionar alerta: se gasto diário > X% do budget mensal → e-mail de aviso
+
+**Dependências:** Fases 1–4 concluídas. Resend configurado.
+
+---
+
+## Resumo
+
+| # | Feature | Esforço | Backend | Frontend |
+|---|---------|---------|---------|---------|
+| 1 | Posts Orgânicos | Baixo | 1 rota nova | 1 página nova |
+| 2 | Dashboard Expandido | Médio | 1 rota nova | Expandir página existente |
+| 3 | Conteúdo em Abas | Baixo | — | Refactor de 1 página |
+| 4 | Calendário Editorial | Alto | 2 rotas novas + upload | 1 componente complexo |
+| 5 | Notificações Configuráveis | Baixo | Ajuste em 1 job | Seção em página existente |
+
+---
+
+## Como retomar
+
+Diga: **"Continuar roadmap"** — implemente a próxima fase `[ ]` sem perguntar.
+Ao concluir cada fase, marcar como `[x]` e commitar.
