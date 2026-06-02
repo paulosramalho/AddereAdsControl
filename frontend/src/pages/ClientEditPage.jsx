@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { api } from "../lib/api.js";
 import { useToast } from "../components/Toast.jsx";
+import { ConfirmModal } from "../components/ConfirmModal.jsx";
 
 const PLATFORMS = ["GOOGLE_ADS", "META_ADS", "INSTAGRAM", "ANTHROPIC", "RESEND"];
 
@@ -33,6 +34,7 @@ export default function ClientEditPage() {
   const [credForm, setCredForm] = useState({ platform: "ANTHROPIC", key: "api_key", value: "" });
   const [savingCred, setSavingCred] = useState(false);
   const [deletingCred, setDeletingCred] = useState({});
+  const [confirmCred, setConfirmCred] = useState(null); // { platform, key }
 
   async function load() {
     try {
@@ -268,7 +270,7 @@ export default function ClientEditPage() {
                   )}
                 </div>
                 <button
-                  onClick={() => deleteCred(c.platform, c.key)}
+                  onClick={() => setConfirmCred({ platform: c.platform, key: c.key })}
                   disabled={deletingCred[`${c.platform}-${c.key}`]}
                   className="text-xs text-red-400 hover:text-red-300 disabled:opacity-40 transition"
                 >
@@ -283,6 +285,17 @@ export default function ClientEditPage() {
           <p className="text-slate-500 text-sm border-t border-slate-700 pt-3">Nenhuma credencial configurada.</p>
         )}
       </div>
+
+      <ConfirmModal
+        open={!!confirmCred}
+        title={`Remover credencial ${confirmCred?.platform} / ${confirmCred?.key}?`}
+        message="Esta ação remove o valor salvo. Você pode reinserir a qualquer momento."
+        onConfirm={() => {
+          deleteCred(confirmCred.platform, confirmCred.key);
+          setConfirmCred(null);
+        }}
+        onCancel={() => setConfirmCred(null)}
+      />
     </div>
   );
 }
