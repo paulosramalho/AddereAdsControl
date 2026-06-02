@@ -11,6 +11,10 @@ import credentialsRouter from "./routes/credentials.js";
 import dashboardRouter from "./routes/dashboard.js";
 import leadsRouter from "./routes/leads.js";
 import campaignsRouter from "./routes/campaigns.js";
+import jobsRouter from "./routes/jobs.js";
+import agentsRouter from "./routes/agents.js";
+import { startScheduler } from "./jobs/engine/scheduler.js";
+import { runCatchUp } from "./jobs/engine/catchUp.js";
 
 if (process.env.NODE_ENV === "production") {
   try {
@@ -60,8 +64,12 @@ app.use("/clients/:clientId/leads", leadsRouter);
 app.use("/clients/:clientId/campaigns", campaignsRouter);
 app.use("/clients", clientsRouter);
 app.use("/dashboard", dashboardRouter);
+app.use("/jobs", jobsRouter);
+app.use("/agents", agentsRouter);
 
 app.listen(PORT, async () => {
   console.log(`Addere backend rodando na porta ${PORT}`);
   await seedSuperAdmin().catch((err) => console.error("Seed error:", err.message));
+  startScheduler();
+  runCatchUp().catch((err) => console.error("[catchUp] erro:", err.message));
 });
