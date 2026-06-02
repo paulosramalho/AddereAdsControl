@@ -28,7 +28,7 @@ Sequência de desenvolvimento definida em 02/06/2026.
 
 ---
 
-### Fase 2 — Dashboard Expandido `[ ]`
+### Fase 2 — Dashboard Expandido `[x]`
 
 **Por que segundo:** `MonthlyGoal` já está no schema mas sem UI. Gráfico de gasto diário usa `CampaignDaily` que já existe. Self-contained — não interfere em outras páginas.
 
