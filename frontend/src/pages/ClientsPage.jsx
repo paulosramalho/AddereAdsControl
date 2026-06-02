@@ -43,20 +43,6 @@ export default function ClientsPage() {
   useEffect(() => { loadClients(); }, []);
 
   function openCreate() { setForm(EMPTY); setModal({ mode: "create" }); }
-  function openEdit(client) {
-    setForm({
-      slug: client.slug,
-      name: client.name,
-      status: client.status,
-      niche: client.niche ?? "",
-      targetAudience: client.targetAudience ?? "",
-      keywords: (client.keywords ?? []).join(", "),
-      contentTone: client.contentTone ?? "",
-      primaryColor: client.primaryColor ?? "#6366f1",
-      timezone: client.timezone ?? "America/Belem",
-    });
-    setModal({ mode: "edit", client });
-  }
   function closeModal() { setModal(null); }
   function setField(k, v) { setForm((prev) => ({ ...prev, [k]: v })); }
 
@@ -154,7 +140,7 @@ export default function ClientsPage() {
                   Campanhas
                 </button>
                 <button
-                  onClick={() => openEdit(client)}
+                  onClick={() => navigate(`/clients/${client.id}/edit`)}
                   className="flex-1 text-xs bg-slate-700 hover:bg-slate-600 text-white rounded-lg py-1.5 transition"
                 >
                   Editar

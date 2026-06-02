@@ -9,15 +9,15 @@
 
 | Fase | Status |
 |------|--------|
-| 0 — Infraestrutura | ⬜ Não iniciada |
-| 1 — Backend Foundation | ⬜ Não iniciada |
-| 2 — Job Engine Multi-tenant | ⬜ Não iniciada |
-| 3 — Frontend | ⬜ Não iniciada |
-| 4 — Produção | ⬜ Não iniciada |
+| 0 — Infraestrutura | ✅ Concluída |
+| 1 — Backend Foundation | ✅ Concluída |
+| 2 — Job Engine Multi-tenant | ✅ Concluída |
+| 3 — Frontend | ✅ Concluída |
+| 4 — Produção | 🔄 Em andamento |
 
-**Concluído:** nada ainda.
-**Em execução:** planejamento.
-**Próximo passo:** Fase 0.1 — criar repositório GitHub.
+**Concluído:** Fases 0–3 completas.
+**Em execução:** Fase 4 — configuração de produção (render.yaml criado; env vars pendentes no Render dashboard).
+**Próximo passo:** Paulo preencher env vars no Render → verificar GET /health após primeiro deploy.
 
 ---
 
@@ -631,27 +631,25 @@ VITE_API_BASE_URL=https://api.addere.com.br
 ## PROGRESSO
 
 ### ✅ Concluído
-*(vazio — nada iniciado)*
+- Fase 0 — Infraestrutura (repo GitHub, Neon, Render, Vercel, R2, secrets)
+- Fase 1 — Backend Foundation (schema Prisma, auth JWT, rotas clients/leads/dashboard/credentials, server.js)
+- Fase 2 — Job Engine Multi-tenant (runner.js, scheduler por cliente, todos os jobs portados e multi-tenant)
+- Fase 3 — Frontend (Login, Dashboard, Leads, Campaigns, Content, Weekly, Agents, ClientsPage, ClientEditPage; Layout + React Router v6)
+- Fase 4.1 — render.yaml criado (startCommand com migrate deploy, IG_PUBLISH_ENABLED=false, vars sync:false)
 
 ### 🔄 Em execução
-- Planejamento (este documento)
+- Fase 4 — Deploy de produção
 
-### ⬜ A fazer (sequência)
-1. Fase 0.1 — Criar repositório GitHub
-2. Fase 0.2 — Criar projeto Neon
-3. Fase 0.3 — Criar serviço Render
-4. Fase 0.4 — Criar projeto Vercel
-5. Fase 0.5 — Criar bucket R2
-6. Fase 0.6 — Confirmar API keys (Anthropic + Resend)
-7. Fase 0.7 — Gerar JWT_SECRET e CREDENTIAL_ENCRYPTION_KEY
-8. Fase 0.8 — Configurar ENV VARs no Render
-9. Fase 0.9 — Configurar ENV VARs no Vercel
-10. Fase 1.1 → 1.16 — Backend Foundation
-11. Fase 2.1 → 2.14 — Job Engine Multi-tenant
-12. Fase 3.1 → 3.13 — Frontend
-13. Fase 4.1 → 4.4 — Produção
+### ⬜ A fazer
+- **Paulo (ação manual):** preencher env vars no Render dashboard (checklist no session_snapshot.md)
+- **Paulo (ação manual):** confirmar env var `VITE_API_URL` no Vercel apontando para o backend Render  
+  *(atenção: o código usa `VITE_API_URL`, não `VITE_API_BASE_URL` como está neste plano — ajustar no Vercel)*
+- Verificar deploy: `GET /health` retorna 200 após primeiro push
+- Fase 4.2 — Domínio customizado (opcional)
+- Fase 4.3 — Monitoramento (alertas de token por cliente)
+- Fase 4.4 — Migração do Amanda (criar cliente, migrar dados históricos, descomissionar Amanda)
 
 ---
 
-*Última atualização: 2026-05-31*
+*Última atualização: 2026-06-01*
 *Autor do plano: Paulo Soares Ramalho + Claude (Addere)*
