@@ -59,7 +59,7 @@ export default function PostsPage() {
   }
 
   async function load(reset = false) {
-    if (!clientId) return;
+    if (!clientId) { setLoading(false); return; }
     try {
       const params = new URLSearchParams({ limit: LIMIT, offset: reset ? 0 : offset });
       if (filterMedia) params.set("mediaType", filterMedia);
