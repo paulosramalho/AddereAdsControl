@@ -172,13 +172,13 @@ export default function ClientEditPage() {
         <h2 className="font-medium text-white">Perfil Editorial</h2>
         <div className="grid grid-cols-2 gap-4">
           {field("Nome", "name")}
-          {field("Slug", "slug", { placeholder: "ex: amanda-ramalho" })}
-          {field("Nicho", "niche", { placeholder: "ex: direito, nutrição" })}
+          {field("Slug", "slug", { placeholder: "ex: joao-silva" })}
+          {field("Nicho", "niche", { placeholder: "ex: nutrição, arquitetura, finanças" })}
           {field("Público-alvo", "targetAudience")}
           {field("Tom de voz", "contentTone", { placeholder: "ex: formal, didático" })}
           {field("Fuso horário", "timezone", { placeholder: "America/Belem" })}
         </div>
-        {field("Keywords (separadas por vírgula)", "keywords", { placeholder: "ex: direito trabalhista, rescisão" })}
+        {field("Keywords (separadas por vírgula)", "keywords", { placeholder: "ex: receitas, emagrecimento, saúde" })}
         <div>
           <label className="block text-xs text-slate-400 mb-1">Status</label>
           <select

@@ -180,13 +180,13 @@ export default function ClientsPage() {
                     onChange={(e) => setField("slug", e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
                     disabled={modal.mode === "edit"}
                     className="input-base w-full disabled:opacity-50 disabled:cursor-not-allowed"
-                    placeholder="ex: dr-silva"
+                    placeholder="ex: joao-silva"
                   />
                 </div>
                 <div>
                   <label className="block text-xs text-slate-400 mb-1">Nome *</label>
                   <input value={form.name} onChange={(e) => setField("name", e.target.value)}
-                    className="input-base w-full" placeholder="Nome do escritório" />
+                    className="input-base w-full" placeholder="Nome do cliente ou empresa" />
                 </div>
                 <div>
                   <label className="block text-xs text-slate-400 mb-1">Status</label>
@@ -197,17 +197,17 @@ export default function ClientsPage() {
                 <div>
                   <label className="block text-xs text-slate-400 mb-1">Nicho</label>
                   <input value={form.niche} onChange={(e) => setField("niche", e.target.value)}
-                    className="input-base w-full" placeholder="ex: Direito Trabalhista" />
+                    className="input-base w-full" placeholder="ex: nutrição, arquitetura, finanças" />
                 </div>
                 <div className="col-span-2">
                   <label className="block text-xs text-slate-400 mb-1">Público-alvo</label>
                   <input value={form.targetAudience} onChange={(e) => setField("targetAudience", e.target.value)}
-                    className="input-base w-full" placeholder="ex: CLTs de SP capital" />
+                    className="input-base w-full" placeholder="ex: adultos de 25-45 anos em SP" />
                 </div>
                 <div className="col-span-2">
                   <label className="block text-xs text-slate-400 mb-1">Palavras-chave (separar por vírgula)</label>
                   <input value={form.keywords} onChange={(e) => setField("keywords", e.target.value)}
-                    className="input-base w-full" placeholder="ex: rescisão, FGTS, demissão" />
+                    className="input-base w-full" placeholder="ex: receitas, emagrecimento, saúde" />
                 </div>
                 <div>
                   <label className="block text-xs text-slate-400 mb-1">Tom de conteúdo</label>
