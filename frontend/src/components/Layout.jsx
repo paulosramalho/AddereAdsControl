@@ -45,7 +45,7 @@ export function Layout({ children }) {
               <span className="font-bold text-base tracking-tight leading-tight block">
                 {payload?.clientName ?? "—"}
               </span>
-              <span className="block text-xs text-slate-500 mt-0.5">By Addere Ads Control</span>
+              <span className="block text-xs text-slate-500 italic mt-0.5 text-right">By Addere Ads Control</span>
             </>
           )}
         </div>
