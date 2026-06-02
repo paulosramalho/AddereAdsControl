@@ -41,7 +41,7 @@ export default function PostsPage() {
 
   const payload = decodePayload(getToken());
   const clientId = paramClientId ?? payload?.clientId;
-  const isSuper = payload?.role === "SUPER_ADMIN";
+  const canAnalyze = payload?.role === "ADMIN" || payload?.role === "SUPER_ADMIN";
 
   const [posts, setPosts] = useState([]);
   const [total, setTotal] = useState(0);
@@ -90,7 +90,7 @@ export default function PostsPage() {
   async function triggerAnalysis() {
     setAnalyzing(true);
     try {
-      const res = await api.post(`/jobs/post-analysis/run`, { clientId });
+      const res = await api.post(`/clients/${clientId}/posts/analyze`, {});
       if (res.ok) {
         addToast("Análise iniciada — atualizará em breve", "info");
         stopPolling();
@@ -160,7 +160,7 @@ export default function PostsPage() {
             <option value="true">Com análise</option>
             <option value="false">Sem análise</option>
           </select>
-          {isSuper && (
+          {canAnalyze && (
             <button
               onClick={triggerAnalysis}
               disabled={analyzing}

@@ -1,6 +1,8 @@
 import { Router } from "express";
 import prisma from "../lib/prisma.js";
-import { requireAuth, requireSameClient } from "../middleware/auth.js";
+import { requireAuth, requireSameClient, requireAdminOrSuper } from "../middleware/auth.js";
+import { runJob } from "../jobs/engine/runner.js";
+import { analyzeInstagram } from "../jobs/instagram/analysis.js";
 
 const router = Router({ mergeParams: true });
 router.use(requireAuth, requireSameClient);
@@ -30,6 +32,16 @@ router.get("/", async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
+});
+
+router.post("/analyze", requireAdminOrSuper, async (req, res) => {
+  const { clientId } = req.params;
+  const client = await prisma.client.findUnique({ where: { id: clientId } });
+  if (!client) return res.status(404).json({ ok: false, message: "Cliente não encontrado" });
+  runJob(client.id, "post-analysis", () => analyzeInstagram(client)).catch((err) => {
+    console.error(`[posts/analyze][${client.slug}]`, err.message);
+  });
+  res.json({ ok: true });
 });
 
 export default router;
