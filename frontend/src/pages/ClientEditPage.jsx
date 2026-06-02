@@ -42,18 +42,24 @@ export default function ClientEditPage() {
   const [deletingUser, setDeletingUser] = useState({});
   const [confirmUser, setConfirmUser] = useState(null); // { id, name }
 
+  const [notifPrefs, setNotifPrefs] = useState(null);
+  const [savingNotif, setSavingNotif] = useState(false);
+
   async function load() {
     try {
-      const [rClient, rCreds, rUsers] = await Promise.all([
+      const [rClient, rCreds, rUsers, rNotif] = await Promise.all([
         api.get(`/clients/${clientId}`),
         api.get(`/clients/${clientId}/credentials`),
         api.get(`/clients/${clientId}/users`),
+        api.get(`/clients/${clientId}/notifications`),
       ]);
       const c = await rClient.json();
       const creds = await rCreds.json();
       const u = await rUsers.json();
+      const notif = await rNotif.json();
       setClient(c);
       setUsers(u.users ?? []);
+      setNotifPrefs(notif);
       setForm({
         name: c.name ?? "",
         slug: c.slug ?? "",
@@ -159,6 +165,24 @@ export default function ClientEditPage() {
       addToast("Erro ao criar usuário", "error");
     } finally {
       setSavingUser(false);
+    }
+  }
+
+  async function saveNotifications(e) {
+    e.preventDefault();
+    setSavingNotif(true);
+    try {
+      const res = await api.put(`/clients/${clientId}/notifications`, notifPrefs);
+      if (res.ok) {
+        addToast("Preferências de notificação salvas", "success");
+      } else {
+        const d = await res.json();
+        addToast(d.message ?? "Erro ao salvar preferências", "error");
+      }
+    } catch {
+      addToast("Erro ao salvar preferências", "error");
+    } finally {
+      setSavingNotif(false);
     }
   }
 
@@ -363,6 +387,52 @@ export default function ClientEditPage() {
           <p className="text-slate-500 text-sm border-t border-slate-700 pt-3">Nenhuma credencial configurada.</p>
         )}
       </div>
+
+      {notifPrefs && (
+        <form onSubmit={saveNotifications} className="bg-slate-800 rounded-xl border border-slate-700 p-5 space-y-4">
+          <h2 className="font-medium text-white">Preferências de Notificação</h2>
+          <div>
+            <label className="block text-xs text-slate-400 mb-1">E-mails adicionais (separados por vírgula)</label>
+            <input
+              type="text"
+              value={notifPrefs.notify_emails}
+              onChange={(e) => setNotifPrefs((p) => ({ ...p, notify_emails: e.target.value }))}
+              placeholder="ex: gestor@empresa.com, cliente@empresa.com"
+              className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+            />
+            <p className="text-xs text-slate-500 mt-1">Além dos usuários cadastrados, estes e-mails receberão as notificações.</p>
+          </div>
+          <div className="space-y-2 pt-1">
+            {[
+              { key: "notify_daily_summary", label: "Resumo diário de conteúdo", desc: "E-mail com posts de alto e baixo desempenho" },
+              { key: "notify_token_alert",   label: "Alerta de token expirando", desc: "Aviso quando o token do Instagram está próximo de expirar" },
+              { key: "notify_budget_alert",  label: "Alerta de budget",          desc: "E-mail quando o gasto mensal atingir 90% da meta" },
+            ].map(({ key, label, desc }) => (
+              <label key={key} className="flex items-start gap-3 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={notifPrefs[key]}
+                  onChange={(e) => setNotifPrefs((p) => ({ ...p, [key]: e.target.checked }))}
+                  className="mt-0.5 accent-blue-500"
+                />
+                <div>
+                  <span className="text-sm text-white group-hover:text-blue-300 transition">{label}</span>
+                  <p className="text-xs text-slate-500">{desc}</p>
+                </div>
+              </label>
+            ))}
+          </div>
+          <div className="flex justify-end pt-2 border-t border-slate-700">
+            <button
+              type="submit"
+              disabled={savingNotif}
+              className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-sm transition"
+            >
+              {savingNotif ? "Salvando..." : "Salvar notificações"}
+            </button>
+          </div>
+        </form>
+      )}
 
       <div className="bg-slate-800 rounded-xl border border-slate-700 p-5 space-y-4">
         <div className="flex items-center justify-between">

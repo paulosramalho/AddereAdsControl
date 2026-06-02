@@ -63,7 +63,7 @@ Sequência de desenvolvimento definida em 02/06/2026.
 
 ---
 
-### Fase 4 — Calendário Editorial `[ ]`
+### Fase 4 — Calendário Editorial `[x]`
 
 **Por que quarto:** modelo `ScheduledPost` e job `publish-scheduled` já existem no schema. Upload de mídia via R2 já implementado em Amanda Ads Control (`lib/r2.js` + endpoint multer) — portar com prefixo multi-tenant. Esforço real é médio, não alto.
 

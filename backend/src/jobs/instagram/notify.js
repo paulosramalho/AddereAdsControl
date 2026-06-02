@@ -2,20 +2,23 @@ import { Resend } from "resend";
 import prisma from "../../lib/prisma.js";
 import { decrypt } from "../../lib/crypto.js";
 
-async function getResendClient(clientId) {
-  const [keyCred, fromCred] = await Promise.all([
-    prisma.clientCredential.findUnique({
-      where: { clientId_platform_key: { clientId, platform: "RESEND", key: "api_key" } },
-    }),
-    prisma.clientCredential.findUnique({
-      where: { clientId_platform_key: { clientId, platform: "RESEND", key: "from_email" } },
-    }),
-  ]);
-  const apiKey = keyCred ? decrypt(keyCred.value) : (process.env.RESEND_API_KEY ?? null);
-  const fromEmail = fromCred
-    ? decrypt(fromCred.value)
-    : (process.env.NOTIFY_EMAIL_FROM ?? "onboarding@resend.dev");
-  return apiKey ? { resend: new Resend(apiKey), fromEmail } : null;
+async function getNotifyConfig(clientId) {
+  const creds = await prisma.clientCredential.findMany({
+    where: {
+      clientId,
+      platform: "RESEND",
+      key: { in: ["api_key", "from_email", "notify_emails", "notify_daily_summary", "notify_token_alert"] },
+    },
+  });
+  const map = {};
+  for (const c of creds) map[c.key] = decrypt(c.value);
+  return {
+    apiKey: map.api_key ?? process.env.RESEND_API_KEY ?? null,
+    fromEmail: map.from_email ?? process.env.NOTIFY_EMAIL_FROM ?? "onboarding@resend.dev",
+    notifyEmails: map.notify_emails ?? "",
+    dailySummaryEnabled: map.notify_daily_summary !== "false",
+    tokenAlertEnabled: map.notify_token_alert !== "false",
+  };
 }
 
 async function getTokenDaysUsed(clientId) {
@@ -26,12 +29,20 @@ async function getTokenDaysUsed(clientId) {
   return Math.floor((Date.now() - new Date(cred.issuedAt).getTime()) / 86400000);
 }
 
-async function getRecipients(clientId) {
+async function getRecipients(clientId, notifyEmails) {
   const users = await prisma.user.findMany({
     where: { clientId, active: true },
     select: { email: true },
   });
-  return users.map((u) => u.email);
+  const all = new Set(users.map((u) => u.email));
+  if (notifyEmails) {
+    notifyEmails
+      .split(",")
+      .map((e) => e.trim())
+      .filter(Boolean)
+      .forEach((e) => all.add(e));
+  }
+  return [...all];
 }
 
 function fmt(iso) {
@@ -81,14 +92,18 @@ function tokenRenewalBanner(daysUsed) {
 }
 
 export async function notifyInstagram(client) {
-  const [resendInfo, tokenDays, recipients] = await Promise.all([
-    getResendClient(client.id),
+  const [config, tokenDays] = await Promise.all([
+    getNotifyConfig(client.id),
     getTokenDaysUsed(client.id),
-    getRecipients(client.id),
   ]);
 
-  if (!resendInfo) return { skipped: true, reason: "RESEND não configurado" };
+  if (!config.apiKey) return { skipped: true, reason: "RESEND não configurado" };
+  if (!config.dailySummaryEnabled) return { skipped: true, reason: "notify_daily_summary desabilitado" };
+
+  const recipients = await getRecipients(client.id, config.notifyEmails);
   if (!recipients.length) return { skipped: true, reason: "Nenhum destinatário configurado" };
+
+  const effectiveTokenDays = config.tokenAlertEnabled ? tokenDays : null;
 
   const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
   const posts = await prisma.instagramPost.findMany({
@@ -100,7 +115,7 @@ export async function notifyInstagram(client) {
   const investPosts = posts.filter((p) => p.analysis.score >= 7).slice(0, 5);
   const removePosts = posts.filter((p) => p.analysis.score <= 4).slice(0, 5);
 
-  if (!investPosts.length && !removePosts.length && (tokenDays === null || tokenDays < 45)) {
+  if (!investPosts.length && !removePosts.length && (effectiveTokenDays === null || effectiveTokenDays < 45)) {
     return { skipped: true, reason: "Nenhum post para destacar e token OK" };
   }
 
@@ -127,7 +142,7 @@ export async function notifyInstagram(client) {
     <div style="color:#94a3b8;font-size:13px;margin-top:4px;">Análise de Conteúdo — ${client.name}</div>
   </div>
   <div style="background:white;border:1px solid #e2e8f0;border-top:none;padding:24px;border-radius:0 0 12px 12px;">
-    ${tokenDays != null ? tokenRenewalBanner(tokenDays) : ""}
+    ${effectiveTokenDays != null ? tokenRenewalBanner(effectiveTokenDays) : ""}
     ${investSection}
     ${removeSection}
     <div style="margin-top:24px;padding-top:16px;border-top:1px solid #e2e8f0;font-size:11px;color:#94a3b8;text-align:center;">
@@ -137,8 +152,9 @@ export async function notifyInstagram(client) {
 </div>`;
 
   try {
-    const result = await resendInfo.resend.emails.send({
-      from: resendInfo.fromEmail,
+    const resend = new Resend(config.apiKey);
+    const result = await resend.emails.send({
+      from: config.fromEmail,
       to: recipients,
       subject,
       html,

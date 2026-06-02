@@ -8,6 +8,7 @@ import { generateSuggestions } from "../content/suggestions.js";
 import { generateBoost } from "../content/boost.js";
 import { generateWeeklyReport } from "../reports/weekly.js";
 import { publishScheduledPosts } from "../instagram/publisher.js";
+import { alertBudget } from "../instagram/budgetAlert.js";
 
 const lastRun = new Map();
 const key = (clientId, job) => `${clientId}:${job}`;
@@ -27,12 +28,13 @@ function brtDow() {
 }
 
 const DAILY = [
-  { job: "ads-collection",         hour: 2, fn: collectAds },
-  { job: "instagram-collection",   hour: 1, fn: collectInstagram },
-  { job: "post-analysis",          hour: 3, fn: analyzeInstagram },
-  { job: "trending-suggestions",   hour: 4, fn: generateTrending },
-  { job: "content-suggestions",    hour: 5, fn: generateSuggestions },
-  { job: "boost-suggestions",      hour: 6, fn: generateBoost },
+  { job: "ads-collection",         hour: 2,  fn: collectAds },
+  { job: "instagram-collection",   hour: 1,  fn: collectInstagram },
+  { job: "post-analysis",          hour: 3,  fn: analyzeInstagram },
+  { job: "trending-suggestions",   hour: 4,  fn: generateTrending },
+  { job: "content-suggestions",    hour: 5,  fn: generateSuggestions },
+  { job: "boost-suggestions",      hour: 6,  fn: generateBoost },
+  { job: "budget-alert",           hour: 10, fn: alertBudget },
 ];
 
 async function tick() {
