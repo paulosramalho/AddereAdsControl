@@ -26,7 +26,7 @@ const upsertSchema = z.object({
 router.put("/:platform/:key", validateBody(upsertSchema), async (req, res) => {
   const { clientId, platform, key } = req.params;
   const { value, expiresAt, issuedAt } = req.body;
-  const encryptedValue = encrypt(value);
+  const encryptedValue = encrypt(value.trim());
 
   const cred = await prisma.clientCredential.upsert({
     where: { clientId_platform_key: { clientId, platform, key } },

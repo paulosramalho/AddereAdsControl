@@ -10,7 +10,7 @@ async function getAnthropicKey(clientId) {
 }
 
 function brtWeekBounds() {
-  const brtStr = new Date().toLocaleString("en-CA", { timeZone: "America/Belem" });
+  const brtStr = new Date().toLocaleDateString("en-CA", { timeZone: "America/Belem" });
   const d = new Date(brtStr + "T12:00:00Z");
   const day = d.getDay();
   const diffToMon = day === 0 ? -6 : 1 - day;
