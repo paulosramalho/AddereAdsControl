@@ -203,37 +203,7 @@ export default function ClientEditPage() {
       <div className="bg-slate-800 rounded-xl border border-slate-700 p-5 space-y-4">
         <h2 className="font-medium text-white">Credenciais</h2>
 
-        {credentials.length > 0 && (
-          <div className="divide-y divide-slate-700">
-            {credentials.map((c) => (
-              <div key={`${c.platform}-${c.key}`} className="flex items-center justify-between py-2.5 text-sm">
-                <div>
-                  <span className="text-slate-400 text-xs font-medium">{c.platform}</span>
-                  <span className="text-slate-600 mx-1">/</span>
-                  <span className="text-white">{c.key}</span>
-                  {c.expiresAt && (
-                    <span className="ml-2 text-xs text-amber-400">
-                      expira {new Date(c.expiresAt).toLocaleDateString("pt-BR", { timeZone: "America/Belem" })}
-                    </span>
-                  )}
-                </div>
-                <button
-                  onClick={() => deleteCred(c.platform, c.key)}
-                  disabled={deletingCred[`${c.platform}-${c.key}`]}
-                  className="text-xs text-red-400 hover:text-red-300 disabled:opacity-40 transition"
-                >
-                  Remover
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {credentials.length === 0 && (
-          <p className="text-slate-500 text-sm">Nenhuma credencial configurada.</p>
-        )}
-
-        <form onSubmit={saveCred} className="pt-3 border-t border-slate-700 space-y-3">
+        <form onSubmit={saveCred} className="space-y-3">
           <p className="text-xs text-slate-400 font-medium">Adicionar / atualizar credencial</p>
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -282,6 +252,36 @@ export default function ClientEditPage() {
             </button>
           </div>
         </form>
+
+        {credentials.length > 0 && (
+          <div className="border-t border-slate-700 pt-3 divide-y divide-slate-700">
+            {credentials.map((c) => (
+              <div key={`${c.platform}-${c.key}`} className="flex items-center justify-between py-2.5 text-sm">
+                <div>
+                  <span className="text-slate-400 text-xs font-medium">{c.platform}</span>
+                  <span className="text-slate-600 mx-1">/</span>
+                  <span className="text-white">{c.key}</span>
+                  {c.expiresAt && (
+                    <span className="ml-2 text-xs text-amber-400">
+                      expira {new Date(c.expiresAt).toLocaleDateString("pt-BR", { timeZone: "America/Belem" })}
+                    </span>
+                  )}
+                </div>
+                <button
+                  onClick={() => deleteCred(c.platform, c.key)}
+                  disabled={deletingCred[`${c.platform}-${c.key}`]}
+                  className="text-xs text-red-400 hover:text-red-300 disabled:opacity-40 transition"
+                >
+                  Remover
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {credentials.length === 0 && (
+          <p className="text-slate-500 text-sm border-t border-slate-700 pt-3">Nenhuma credencial configurada.</p>
+        )}
       </div>
     </div>
   );
