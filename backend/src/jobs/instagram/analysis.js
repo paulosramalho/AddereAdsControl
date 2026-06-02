@@ -35,7 +35,7 @@ Legenda: ${post.caption ?? "(sem legenda)"}
 Tipo de mídia: ${post.mediaType}
 Curtidas: ${post.likes} | Comentários: ${post.comments} | Alcance: ${post.reach} | Impressões: ${post.impressions}
 
-Retorne JSON:
+Responda SEMPRE em português do Brasil. Retorne apenas o JSON, sem texto adicional:
 {
   "score": número de 0 a 10,
   "strengths": ["ponto forte 1", "ponto forte 2"],

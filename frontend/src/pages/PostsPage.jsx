@@ -38,6 +38,7 @@ export default function PostsPage() {
   const { clientId: paramClientId } = useParams();
   const { addToast } = useToast();
   const pollRef = useRef(null);
+  const analyzedBeforeRef = useRef(0);
 
   const payload = decodePayload(getToken());
   const clientId = paramClientId ?? payload?.clientId;
@@ -87,7 +88,18 @@ export default function PostsPage() {
 
   useEffect(() => { return stopPolling; }, []);
 
+  useEffect(() => {
+    if (!analyzing) return;
+    const nowAnalyzed = posts.filter((p) => !!p.analysis).length;
+    if (nowAnalyzed > analyzedBeforeRef.current) {
+      stopPolling();
+      setAnalyzing(false);
+      addToast("Análise concluída", "success");
+    }
+  }, [posts]);
+
   async function triggerAnalysis() {
+    analyzedBeforeRef.current = posts.filter((p) => !!p.analysis).length;
     setAnalyzing(true);
     try {
       const res = await api.post(`/clients/${clientId}/posts/analyze`, {});
@@ -95,7 +107,7 @@ export default function PostsPage() {
         addToast("Análise iniciada — atualizará em breve", "info");
         stopPolling();
         pollRef.current = setInterval(() => load(true), 5000);
-        setTimeout(() => { stopPolling(); setAnalyzing(false); }, 120_000);
+        setTimeout(() => { stopPolling(); setAnalyzing(false); }, 30_000);
       } else {
         const data = await res.json();
         addToast(data.message ?? "Erro ao disparar análise", "error");
