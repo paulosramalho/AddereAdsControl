@@ -35,4 +35,13 @@ export const api = {
   put: (path, body, opts) => request(path, { ...opts, method: "PUT", body: JSON.stringify(body) }),
   patch: (path, body, opts) => request(path, { ...opts, method: "PATCH", body: JSON.stringify(body) }),
   del: (path, opts) => request(path, { ...opts, method: "DELETE" }),
+  upload: (path, formData) => {
+    const token = getToken();
+    return fetch(`${BASE}${path}`, {
+      method: "POST",
+      body: formData,
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      credentials: "include",
+    });
+  },
 };
