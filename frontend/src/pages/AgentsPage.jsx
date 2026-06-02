@@ -118,25 +118,17 @@ export default function AgentsPage() {
         setRunning((prev) => {
           if (!Object.values(prev).some(Boolean)) return prev;
           const next = { ...prev };
-          const completed = [];
+          let changed = false;
           for (const c of data.clients) {
             for (const j of c.jobs) {
               const key = `${c.clientId}-${j.name}`;
               if (next[key] && j.status !== "RUNNING") {
                 delete next[key];
-                completed.push({ name: j.name, status: j.status });
+                changed = true;
               }
             }
           }
-          if (completed.length > 0) {
-            setTimeout(() => {
-              completed.forEach(({ name, status }) => {
-                if (status === "SUCCESS") addToast(`${JOB_LABELS[name] ?? name}: concluído`, "success");
-                else addToast(`${JOB_LABELS[name] ?? name}: falhou`, "error");
-              });
-            }, 0);
-          }
-          return next;
+          return changed ? next : prev;
         });
       }
     } catch {
