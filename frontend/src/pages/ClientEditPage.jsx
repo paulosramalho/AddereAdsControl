@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { api } from "../lib/api.js";
 import { useToast } from "../components/Toast.jsx";
@@ -19,6 +19,14 @@ export default function ClientEditPage() {
   const { addToast } = useToast();
 
   const [client, setClient] = useState(null);
+  const [copied, setCopied] = useState(false);
+
+  const copyId = useCallback(() => {
+    navigator.clipboard.writeText(clientId).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }, [clientId]);
   const [form, setForm] = useState({});
   const [credentials, setCredentials] = useState([]);
   const [saving, setSaving] = useState(false);
@@ -137,15 +145,25 @@ export default function ClientEditPage() {
 
   return (
     <div className="p-6 space-y-8 max-w-3xl">
-      <div className="flex items-center gap-3">
-        <button onClick={() => navigate("/clients")} className="text-slate-400 hover:text-white text-sm transition">
-          ← Clientes
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
+          <button onClick={() => navigate("/clients")} className="text-slate-400 hover:text-white text-sm transition">
+            ← Clientes
+          </button>
+          <span className="text-slate-600">/</span>
+          <h1 className="text-xl font-semibold text-white">{client.name}</h1>
+          <span className={`text-xs px-2 py-0.5 rounded font-medium ${client.status === "ACTIVE" ? "bg-emerald-900/40 text-emerald-300" : client.status === "SUSPENDED" ? "bg-red-900/40 text-red-300" : "bg-amber-900/40 text-amber-300"}`}>
+            {client.status}
+          </span>
+        </div>
+        <button
+          onClick={copyId}
+          title="Copiar ID do cliente"
+          className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-300 bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 transition flex-shrink-0"
+        >
+          <span className="font-mono">{clientId.slice(0, 12)}…</span>
+          <span>{copied ? "✓ copiado" : "copiar ID"}</span>
         </button>
-        <span className="text-slate-600">/</span>
-        <h1 className="text-xl font-semibold text-white">{client.name}</h1>
-        <span className={`text-xs px-2 py-0.5 rounded font-medium ${client.status === "ACTIVE" ? "bg-emerald-900/40 text-emerald-300" : client.status === "SUSPENDED" ? "bg-red-900/40 text-red-300" : "bg-amber-900/40 text-amber-300"}`}>
-          {client.status}
-        </span>
       </div>
 
       <form onSubmit={saveProfile} className="bg-slate-800 rounded-xl border border-slate-700 p-5 space-y-4">
