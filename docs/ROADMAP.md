@@ -88,7 +88,7 @@ Sequência de desenvolvimento definida em 02/06/2026.
 
 ---
 
-### Fase 5 — Notificações Configuráveis `[ ]`
+### Fase 5 — Notificações Configuráveis `[x]`
 
 **Por que último:** menor impacto imediato. Additive — não quebra nada existente.
 

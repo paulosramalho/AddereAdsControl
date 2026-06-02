@@ -2,11 +2,11 @@ import { Router } from "express";
 import { z } from "zod";
 import prisma from "../lib/prisma.js";
 import { encrypt, decrypt } from "../lib/crypto.js";
-import { requireAuth, requireSuperAdmin } from "../middleware/auth.js";
+import { requireAuth, requireAdminOrSuper, requireSameClient } from "../middleware/auth.js";
 import { validateBody } from "../middleware/validate.js";
 
 const router = Router({ mergeParams: true });
-router.use(requireAuth, requireSuperAdmin);
+router.use(requireAuth, requireSameClient, requireAdminOrSuper);
 
 const NOTIFY_KEYS = [
   "notify_emails",
