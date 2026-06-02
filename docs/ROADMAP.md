@@ -65,21 +65,26 @@ Sequência de desenvolvimento definida em 02/06/2026.
 
 ### Fase 4 — Calendário Editorial `[ ]`
 
-**Por que quarto:** modelo `ScheduledPost` e job `publish-scheduled` já existem. É a feature mais complexa — requer upload de mídia via R2 e integração com a aba Calendário da Fase 3.
+**Por que quarto:** modelo `ScheduledPost` e job `publish-scheduled` já existem no schema. Upload de mídia via R2 já implementado em Amanda Ads Control (`lib/r2.js` + endpoint multer) — portar com prefixo multi-tenant. Esforço real é médio, não alto.
+
+**Referência de implementação:** `C:\Amanda\backend\src\lib\r2.js` e linhas ~1019–1070 de `C:\Amanda\backend\src\server.js` (endpoint `POST /api/media/upload` + multer config).
 
 **O que fazer:**
-1. Componente de calendário mensal:
-   - Grade de dias do mês com badges de posts agendados
-   - Clique no badge → modal de detalhes (caption, formato, status, ações)
-   - Status coloridos: DRAFT/SCHEDULED/PUBLISHING/PUBLISHED/FAILED/CANCELLED
-2. Botão "Agendar" nas sugestões aprovadas (`ContentSuggestion.status === "APPROVED"`):
-   - Abre `SchedulePostModal`: escolher data, hora, formato, upload de mídia
-   - Upload vai para R2 via `PUT /clients/:clientId/media/upload`
-   - Cria `ScheduledPost` vinculado à sugestão
-3. Backend: `routes/scheduledPosts.js` com 5 rotas (listar, criar, detalhe, atualizar, cancelar)
-4. Gate de segurança: verificar `IG_PUBLISH_ENABLED` antes de exibir controles de publicação
+1. Portar endpoint de upload para Addere com isolamento por cliente:
+   - `POST /clients/:clientId/media/upload` em nova rota `routes/media.js`
+   - Multer em memória (mesmo padrão Amanda) → `uploadBuffer()` → retorna URL pública R2
+   - Prefixo de key: `clients/{clientSlug}/{ano-mes}/{uuid}.{ext}` (isolamento por tenant)
+2. Componente de calendário mensal (`CalendarGrid.jsx`):
+   - Grade de dias com badges de posts agendados por dia
+   - Clique no badge → modal de detalhes (caption, formato, status, ações: cancelar/reeditar)
+   - Status coloridos: DRAFT · SCHEDULED · PUBLISHING · PUBLISHED · FAILED · CANCELLED
+3. Botão "Agendar" nas sugestões aprovadas (`status === "APPROVED"`):
+   - Abre `SchedulePostModal`: data, hora, formato, upload de mídia (drag-and-drop ou file picker)
+   - Cria `ScheduledPost` vinculado à `ContentSuggestion`
+4. Backend: `routes/scheduledPosts.js` com 5 rotas (listar por período, criar, detalhe, atualizar, cancelar)
+5. Gate de segurança: exibir aviso se `IG_PUBLISH_ENABLED=false` mas não bloquear agendamento
 
-**Dependências:** Fase 3 (aba Calendário existe como placeholder). R2 configurado (`R2_*` env vars no Render).
+**Dependências:** Fase 3 (aba Calendário como placeholder). `R2_*` env vars configuradas no Render.
 
 ---
 
@@ -106,7 +111,7 @@ Sequência de desenvolvimento definida em 02/06/2026.
 | 1 | Posts Orgânicos | Baixo | 1 rota nova | 1 página nova |
 | 2 | Dashboard Expandido | Médio | 1 rota nova | Expandir página existente |
 | 3 | Conteúdo em Abas | Baixo | — | Refactor de 1 página |
-| 4 | Calendário Editorial | Alto | 2 rotas novas + upload | 1 componente complexo |
+| 4 | Calendário Editorial | Médio | 2 rotas novas + upload (portar de Amanda) | 1 componente complexo |
 | 5 | Notificações Configuráveis | Baixo | Ajuste em 1 job | Seção em página existente |
 
 ---
