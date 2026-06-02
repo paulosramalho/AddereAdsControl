@@ -306,7 +306,7 @@ export default function SchedulePostModal({ open, post, defaultDate, clientId, o
         <div className="flex items-start justify-between px-6 py-4 border-b border-slate-700 flex-shrink-0">
           <div>
             <h2 className="text-white font-semibold text-base">
-              {post ? "Editar agendamento" : "Novo agendamento"}
+              {post ? "Editar agendamento" : "Agendar publicação Instagram"}
             </h2>
             {isSuggestion && (
               <p className="text-slate-400 text-xs mt-0.5 truncate max-w-xs" title={initialValues.caption}>
