@@ -105,6 +105,8 @@ model Client {
   logoUrl        String?
   rssSources     Json?
   timezone       String       @default("America/Belem")
+  maxAdmins      Int?
+  maxViewers     Int?
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
