@@ -34,7 +34,6 @@ export default function App() {
                     <Route path="/dashboard" element={<DashboardPage />} />
                     <Route path="/leads" element={<LeadsPage />} />
                     <Route path="/campaigns" element={<CampaignsPage />} />
-                    <Route path="/posts" element={<PostsPage />} />
                     <Route path="/content" element={<ContentPage />} />
                     <Route path="/weekly" element={<WeeklyPage />} />
                     <Route path="/agents" element={<AgentsPage />} />

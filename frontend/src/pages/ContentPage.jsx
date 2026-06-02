@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { api } from "../lib/api.js";
 import { useToast } from "../components/Toast.jsx";
-import { formatters } from "../lib/formatters.js";
+import { brlFromCentavos } from "../lib/formatters.js";
+import PostsPage from "./PostsPage.jsx";
 
 const FORMAT_BADGE = {
   REEL: "bg-purple-900/40 text-purple-300",
@@ -17,14 +19,11 @@ const STATUS_BADGE = {
   DONE: "bg-blue-900/40 text-blue-300",
 };
 
-function brlCentavos(cents) {
-  return (cents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-}
+const STATUS_FILTERS = ["PENDING", "APPROVED", "DONE", "REJECTED"];
 
-export default function ContentPage() {
+function SuggestionsTab() {
   const { addToast } = useToast();
   const [suggestions, setSuggestions] = useState([]);
-  const [boosts, setBoosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("PENDING");
   const [updating, setUpdating] = useState({});
@@ -32,14 +31,9 @@ export default function ContentPage() {
 
   async function load() {
     try {
-      const [rSugg, rBoost] = await Promise.all([
-        api.get(`/suggestions/content?status=${statusFilter}`),
-        api.get(`/suggestions/boost?status=${statusFilter}`),
-      ]);
-      const dSugg = await rSugg.json();
-      const dBoost = await rBoost.json();
-      setSuggestions(dSugg.data ?? []);
-      setBoosts(dBoost.data ?? []);
+      const res = await api.get(`/suggestions/content?status=${statusFilter}`);
+      const d = await res.json();
+      setSuggestions(d.data ?? []);
     } catch {
       addToast("Erro ao carregar sugestões", "error");
     } finally {
@@ -47,13 +41,12 @@ export default function ContentPage() {
     }
   }
 
-  useEffect(() => { load(); }, [statusFilter]);
+  useEffect(() => { setLoading(true); load(); }, [statusFilter]);
 
-  async function updateStatus(type, id, status) {
-    const key = `${type}-${id}`;
-    setUpdating((u) => ({ ...u, [key]: true }));
+  async function updateStatus(id, status) {
+    setUpdating((u) => ({ ...u, [id]: true }));
     try {
-      const res = await api.patch(`/suggestions/${type}/${id}/status`, { status });
+      const res = await api.patch(`/suggestions/content/${id}/status`, { status });
       if (res.ok) {
         addToast("Status atualizado", "success");
         load();
@@ -64,7 +57,7 @@ export default function ContentPage() {
     } catch {
       addToast("Erro ao atualizar status", "error");
     } finally {
-      setUpdating((u) => ({ ...u, [key]: false }));
+      setUpdating((u) => ({ ...u, [id]: false }));
     }
   }
 
@@ -86,15 +79,13 @@ export default function ContentPage() {
     }
   }
 
-  const filters = ["PENDING", "APPROVED", "DONE", "REJECTED"];
-
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <h1 className="text-xl font-semibold text-white">Sugestões de Conteúdo</h1>
+        <h2 className="text-base font-semibold text-white">Sugestões de Pauta</h2>
         <div className="flex items-center gap-2">
           <div className="flex rounded-lg border border-slate-700 overflow-hidden text-sm">
-            {filters.map((f) => (
+            {STATUS_FILTERS.map((f) => (
               <button
                 key={f}
                 onClick={() => setStatusFilter(f)}
@@ -116,123 +107,236 @@ export default function ContentPage() {
 
       {loading ? (
         <p className="text-slate-400">Carregando...</p>
+      ) : suggestions.length === 0 ? (
+        <div className="text-slate-400 text-center py-16">
+          Nenhuma sugestão com status {statusFilter}.
+        </div>
       ) : (
-        <>
-          {suggestions.length === 0 && boosts.length === 0 && (
-            <div className="text-slate-400 text-center py-16">
-              Nenhuma sugestão com status {statusFilter}.
-            </div>
-          )}
-
-          {suggestions.length > 0 && (
-            <div>
-              <h2 className="text-sm font-medium text-slate-400 mb-3">Sugestões de Pauta</h2>
-              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                {suggestions.map((s) => (
-                  <div key={s.id} className="bg-slate-800 rounded-xl border border-slate-700 p-4 flex flex-col gap-3">
-                    <div className="flex items-start justify-between gap-2">
-                      <span className={`text-xs px-2 py-0.5 rounded font-medium ${FORMAT_BADGE[s.format] ?? "bg-slate-700 text-slate-300"}`}>
-                        {s.format}
-                      </span>
-                      <span className={`text-xs px-2 py-0.5 rounded font-medium ${STATUS_BADGE[s.status] ?? ""}`}>
-                        {s.status}
-                      </span>
-                    </div>
-                    <p className="text-white font-medium leading-snug">{s.title}</p>
-                    {s.hook && <p className="text-slate-400 text-sm italic">"{s.hook}"</p>}
-                    {s.reasoning && (
-                      <p className="text-slate-500 text-xs leading-relaxed">{s.reasoning}</p>
-                    )}
-                    {s.sources?.length > 0 && (
-                      <div className="flex flex-wrap gap-1">
-                        {s.sources.map((src, i) => (
-                          <span key={i} className="text-xs bg-slate-700/60 text-slate-400 px-2 py-0.5 rounded">
-                            {src}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                    {statusFilter === "PENDING" && (
-                      <div className="flex gap-2 mt-auto pt-2 border-t border-slate-700">
-                        <button
-                          onClick={() => updateStatus("content", s.id, "APPROVED")}
-                          disabled={updating[`content-${s.id}`]}
-                          className="flex-1 text-xs py-1.5 rounded-lg bg-emerald-700/40 hover:bg-emerald-700/70 text-emerald-300 transition disabled:opacity-50"
-                        >
-                          Aprovar
-                        </button>
-                        <button
-                          onClick={() => updateStatus("content", s.id, "REJECTED")}
-                          disabled={updating[`content-${s.id}`]}
-                          className="flex-1 text-xs py-1.5 rounded-lg bg-red-900/30 hover:bg-red-900/60 text-red-400 transition disabled:opacity-50"
-                        >
-                          Rejeitar
-                        </button>
-                      </div>
-                    )}
-                    {statusFilter === "APPROVED" && (
-                      <button
-                        onClick={() => updateStatus("content", s.id, "DONE")}
-                        disabled={updating[`content-${s.id}`]}
-                        className="text-xs py-1.5 rounded-lg bg-blue-700/40 hover:bg-blue-700/70 text-blue-300 transition disabled:opacity-50 mt-auto border-t border-slate-700 pt-2"
-                      >
-                        Marcar como feito
-                      </button>
-                    )}
-                  </div>
-                ))}
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {suggestions.map((s) => (
+            <div key={s.id} className="glass-card bg-slate-800/60 rounded-xl border border-slate-700/60 p-4 flex flex-col gap-3">
+              <div className="flex items-start justify-between gap-2">
+                <span className={`text-xs px-2 py-0.5 rounded font-medium ${FORMAT_BADGE[s.format] ?? "bg-slate-700 text-slate-300"}`}>
+                  {s.format}
+                </span>
+                <span className={`text-xs px-2 py-0.5 rounded font-medium ${STATUS_BADGE[s.status] ?? ""}`}>
+                  {s.status}
+                </span>
               </div>
+              <p className="text-white font-medium leading-snug">{s.title}</p>
+              {s.hook && <p className="text-slate-400 text-sm italic">"{s.hook}"</p>}
+              {s.reasoning && (
+                <p className="text-slate-500 text-xs leading-relaxed">{s.reasoning}</p>
+              )}
+              {s.sources?.length > 0 && (
+                <div className="flex flex-wrap gap-1">
+                  {s.sources.map((src, i) => (
+                    <span key={i} className="text-xs bg-slate-700/60 text-slate-400 px-2 py-0.5 rounded">
+                      {src}
+                    </span>
+                  ))}
+                </div>
+              )}
+              {statusFilter === "PENDING" && (
+                <div className="flex gap-2 mt-auto pt-2 border-t border-slate-700">
+                  <button
+                    onClick={() => updateStatus(s.id, "APPROVED")}
+                    disabled={updating[s.id]}
+                    className="flex-1 text-xs py-1.5 rounded-lg bg-emerald-700/40 hover:bg-emerald-700/70 text-emerald-300 transition disabled:opacity-50"
+                  >
+                    Aprovar
+                  </button>
+                  <button
+                    onClick={() => updateStatus(s.id, "REJECTED")}
+                    disabled={updating[s.id]}
+                    className="flex-1 text-xs py-1.5 rounded-lg bg-red-900/30 hover:bg-red-900/60 text-red-400 transition disabled:opacity-50"
+                  >
+                    Rejeitar
+                  </button>
+                </div>
+              )}
+              {statusFilter === "APPROVED" && (
+                <button
+                  onClick={() => updateStatus(s.id, "DONE")}
+                  disabled={updating[s.id]}
+                  className="text-xs py-1.5 rounded-lg bg-blue-700/40 hover:bg-blue-700/70 text-blue-300 transition disabled:opacity-50 mt-auto border-t border-slate-700 pt-2"
+                >
+                  Marcar como feito
+                </button>
+              )}
             </div>
-          )}
-
-          {boosts.length > 0 && (
-            <div>
-              <h2 className="text-sm font-medium text-slate-400 mb-3">Sugestões de Boost</h2>
-              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                {boosts.map((b) => (
-                  <div key={b.id} className="bg-slate-800 rounded-xl border border-slate-700 p-4 flex flex-col gap-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-emerald-400 font-semibold text-lg">
-                        {brlCentavos(b.suggestedBudget)}
-                      </span>
-                      <span className={`text-xs px-2 py-0.5 rounded font-medium ${STATUS_BADGE[b.status] ?? ""}`}>
-                        {b.status}
-                      </span>
-                    </div>
-                    <p className="text-slate-400 text-sm">
-                      ~{b.estimatedLeads} lead{b.estimatedLeads !== 1 ? "s" : ""} estimado{b.estimatedLeads !== 1 ? "s" : ""}
-                    </p>
-                    {b.postCaption && (
-                      <p className="text-slate-500 text-xs italic line-clamp-2">"{b.postCaption}"</p>
-                    )}
-                    {b.reasoning && (
-                      <p className="text-slate-500 text-xs leading-relaxed">{b.reasoning}</p>
-                    )}
-                    {statusFilter === "PENDING" && (
-                      <div className="flex gap-2 mt-auto pt-2 border-t border-slate-700">
-                        <button
-                          onClick={() => updateStatus("boost", b.id, "APPROVED")}
-                          disabled={updating[`boost-${b.id}`]}
-                          className="flex-1 text-xs py-1.5 rounded-lg bg-emerald-700/40 hover:bg-emerald-700/70 text-emerald-300 transition disabled:opacity-50"
-                        >
-                          Aprovar
-                        </button>
-                        <button
-                          onClick={() => updateStatus("boost", b.id, "REJECTED")}
-                          disabled={updating[`boost-${b.id}`]}
-                          className="flex-1 text-xs py-1.5 rounded-lg bg-red-900/30 hover:bg-red-900/60 text-red-400 transition disabled:opacity-50"
-                        >
-                          Rejeitar
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </>
+          ))}
+        </div>
       )}
+    </div>
+  );
+}
+
+function BoostTab() {
+  const { addToast } = useToast();
+  const [boosts, setBoosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState("PENDING");
+  const [updating, setUpdating] = useState({});
+
+  async function load() {
+    try {
+      const res = await api.get(`/suggestions/boost?status=${statusFilter}`);
+      const d = await res.json();
+      setBoosts(d.data ?? []);
+    } catch {
+      addToast("Erro ao carregar sugestões de boost", "error");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => { setLoading(true); load(); }, [statusFilter]);
+
+  async function updateStatus(id, status) {
+    setUpdating((u) => ({ ...u, [id]: true }));
+    try {
+      const res = await api.patch(`/suggestions/boost/${id}/status`, { status });
+      if (res.ok) {
+        addToast("Status atualizado", "success");
+        load();
+      } else {
+        const d = await res.json();
+        addToast(d.message ?? "Erro ao atualizar status", "error");
+      }
+    } catch {
+      addToast("Erro ao atualizar status", "error");
+    } finally {
+      setUpdating((u) => ({ ...u, [id]: false }));
+    }
+  }
+
+  return (
+    <div className="p-6 space-y-6">
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <h2 className="text-base font-semibold text-white">Sugestões de Impulsionamento</h2>
+        <div className="flex rounded-lg border border-slate-700 overflow-hidden text-sm">
+          {STATUS_FILTERS.map((f) => (
+            <button
+              key={f}
+              onClick={() => setStatusFilter(f)}
+              className={`px-3 py-1.5 transition ${statusFilter === f ? "bg-blue-600 text-white" : "text-slate-400 hover:text-white hover:bg-slate-700"}`}
+            >
+              {f}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {loading ? (
+        <p className="text-slate-400">Carregando...</p>
+      ) : boosts.length === 0 ? (
+        <div className="text-slate-400 text-center py-16">
+          Nenhuma sugestão com status {statusFilter}.
+        </div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {boosts.map((b) => (
+            <div key={b.id} className="glass-card bg-slate-800/60 rounded-xl border border-slate-700/60 p-4 flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <span className="text-emerald-400 font-semibold text-lg">
+                  {brlFromCentavos(b.suggestedBudget)}
+                </span>
+                <span className={`text-xs px-2 py-0.5 rounded font-medium ${STATUS_BADGE[b.status] ?? ""}`}>
+                  {b.status}
+                </span>
+              </div>
+              <p className="text-slate-400 text-sm">
+                ~{b.estimatedLeads} lead{b.estimatedLeads !== 1 ? "s" : ""} estimado{b.estimatedLeads !== 1 ? "s" : ""}
+              </p>
+              {b.postCaption && (
+                <p className="text-slate-500 text-xs italic line-clamp-2">"{b.postCaption}"</p>
+              )}
+              {b.reasoning && (
+                <p className="text-slate-500 text-xs leading-relaxed">{b.reasoning}</p>
+              )}
+              {statusFilter === "PENDING" && (
+                <div className="flex gap-2 mt-auto pt-2 border-t border-slate-700">
+                  <button
+                    onClick={() => updateStatus(b.id, "APPROVED")}
+                    disabled={updating[b.id]}
+                    className="flex-1 text-xs py-1.5 rounded-lg bg-emerald-700/40 hover:bg-emerald-700/70 text-emerald-300 transition disabled:opacity-50"
+                  >
+                    Aprovar
+                  </button>
+                  <button
+                    onClick={() => updateStatus(b.id, "REJECTED")}
+                    disabled={updating[b.id]}
+                    className="flex-1 text-xs py-1.5 rounded-lg bg-red-900/30 hover:bg-red-900/60 text-red-400 transition disabled:opacity-50"
+                  >
+                    Rejeitar
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CalendarTab() {
+  return (
+    <div className="p-6">
+      <div className="flex flex-col items-center justify-center py-24 text-center gap-3">
+        <div className="w-12 h-12 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center">
+          <svg className="w-6 h-6 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+        </div>
+        <div>
+          <p className="text-white font-medium">Calendário Editorial</p>
+          <p className="text-slate-400 text-sm mt-1">Em breve — agendamento e publicação de posts.</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const TABS = [
+  { key: "suggestions", label: "Sugestões" },
+  { key: "posts", label: "Posts" },
+  { key: "calendar", label: "Calendário" },
+  { key: "boost", label: "Impulsionar" },
+];
+
+export default function ContentPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get("tab") ?? "suggestions";
+
+  function setTab(key) {
+    setSearchParams({ tab: key }, { replace: true });
+  }
+
+  return (
+    <div className="flex flex-col min-h-full">
+      <div className="px-6 pt-6 border-b border-slate-700">
+        <div className="flex">
+          {TABS.map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setTab(tab.key)}
+              className={`px-4 py-2.5 text-sm font-medium border-b-2 transition -mb-px ${
+                activeTab === tab.key
+                  ? "border-blue-500 text-white"
+                  : "border-transparent text-slate-400 hover:text-white hover:border-slate-600"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
+      {activeTab === "suggestions" && <SuggestionsTab />}
+      {activeTab === "posts" && <PostsPage />}
+      {activeTab === "calendar" && <CalendarTab />}
+      {activeTab === "boost" && <BoostTab />}
     </div>
   );
 }
