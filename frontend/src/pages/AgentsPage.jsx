@@ -20,6 +20,13 @@ const STATUS_STYLE = {
   NEVER: "bg-slate-700 text-slate-400",
 };
 
+const STATUS_LABEL = {
+  SUCCESS: "Sucesso",
+  FAILED: "Falha",
+  RUNNING: "Executando",
+  NEVER: "Nunca executou",
+};
+
 function fmtAgo(dateStr) {
   if (!dateStr) return "—";
   const diff = Math.round((Date.now() - new Date(dateStr)) / 1000);
@@ -102,7 +109,7 @@ export default function AgentsPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-slate-500 text-xs border-b border-slate-700">
-                  <th className="text-left px-5 py-2 font-medium">Job</th>
+                  <th className="text-left px-5 py-2 font-medium">Agente</th>
                   <th className="text-left px-4 py-2 font-medium">Status</th>
                   <th className="text-left px-4 py-2 font-medium">Última execução</th>
                   <th className="text-left px-4 py-2 font-medium">Duração</th>
@@ -114,12 +121,15 @@ export default function AgentsPage() {
                   const key = `${c.clientId}-${j.name}`;
                   return (
                     <tr key={j.name} className="border-b border-slate-700/50 last:border-0 hover:bg-slate-700/20">
-                      <td className="px-5 py-2.5 text-slate-300 font-medium">
-                        {JOB_LABELS[j.name] ?? j.name}
+                      <td className="px-5 py-2.5">
+                        <div className="text-slate-300 font-medium">{JOB_LABELS[j.name] ?? j.name}</div>
+                        {j.error && (
+                          <div className="text-xs text-red-400 mt-0.5 max-w-xs truncate" title={j.error}>{j.error}</div>
+                        )}
                       </td>
                       <td className="px-4 py-2.5">
                         <span className={`px-2 py-0.5 rounded text-xs font-medium ${STATUS_STYLE[j.status] ?? STATUS_STYLE.NEVER}`}>
-                          {j.status}
+                          {STATUS_LABEL[j.status] ?? j.status}
                         </span>
                       </td>
                       <td className="px-4 py-2.5 text-slate-400">{fmtAgo(j.lastRun)}</td>
