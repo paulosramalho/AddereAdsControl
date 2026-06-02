@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useParams } from "react-router-dom";
 import { api } from "../lib/api.js";
 import { useToast } from "../components/Toast.jsx";
 import { brlFromCentavos } from "../lib/formatters.js";
 import PostsPage from "./PostsPage.jsx";
+import CalendarGrid from "../components/CalendarGrid.jsx";
+import SchedulePostModal from "../components/SchedulePostModal.jsx";
+import { decodePayload, getToken } from "../lib/auth.js";
 
 const FORMAT_BADGE = {
   REEL: "bg-purple-900/40 text-purple-300",
@@ -289,19 +292,97 @@ function BoostTab() {
 }
 
 function CalendarTab() {
+  const { clientId: paramClientId } = useParams();
+  const payload = decodePayload(getToken());
+  const clientId = paramClientId ?? payload?.clientId;
+  const canEdit = payload?.role === "ADMIN" || payload?.role === "SUPER_ADMIN";
+
+  const [month, setMonth] = useState(() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), 1);
+  });
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedPost, setSelectedPost] = useState(null);
+  const [defaultDate, setDefaultDate] = useState(null);
+  const { addToast } = useToast();
+
+  const monthParam = `${month.getFullYear()}-${String(month.getMonth() + 1).padStart(2, "0")}`;
+
+  useEffect(() => {
+    if (!clientId) return;
+    setLoading(true);
+    api.get(`/clients/${clientId}/scheduled-posts?month=${monthParam}`)
+      .then((r) => r.json())
+      .then((d) => { if (d.ok) setPosts(d.posts); })
+      .catch(() => addToast("Erro ao carregar calendário", "error"))
+      .finally(() => setLoading(false));
+  }, [clientId, monthParam]);
+
+  function handlePrevMonth() {
+    setMonth((m) => new Date(m.getFullYear(), m.getMonth() - 1, 1));
+  }
+  function handleNextMonth() {
+    setMonth((m) => new Date(m.getFullYear(), m.getMonth() + 1, 1));
+  }
+  function openCreate(date) {
+    if (!canEdit) return;
+    setSelectedPost(null);
+    setDefaultDate(date);
+    setShowModal(true);
+  }
+  function openEdit(post) {
+    setSelectedPost(post);
+    setDefaultDate(null);
+    setShowModal(true);
+  }
+  function handleSave(savedPost) {
+    setPosts((prev) => {
+      const idx = prev.findIndex((p) => p.id === savedPost.id);
+      if (idx >= 0) {
+        const next = [...prev];
+        next[idx] = savedPost;
+        return next;
+      }
+      return [...prev, savedPost];
+    });
+    setShowModal(false);
+  }
+
   return (
-    <div className="p-6">
-      <div className="flex flex-col items-center justify-center py-24 text-center gap-3">
-        <div className="w-12 h-12 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center">
-          <svg className="w-6 h-6 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
-        </div>
-        <div>
-          <p className="text-white font-medium">Calendário Editorial</p>
-          <p className="text-slate-400 text-sm mt-1">Em breve — agendamento e publicação de posts.</p>
-        </div>
+    <div className="p-6 space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-base font-semibold text-white">Calendário Editorial</h2>
+        {canEdit && (
+          <button
+            onClick={() => openCreate(new Date())}
+            className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm transition"
+          >
+            + Novo agendamento
+          </button>
+        )}
       </div>
+      {loading ? (
+        <p className="text-slate-400 text-sm">Carregando...</p>
+      ) : (
+        <CalendarGrid
+          posts={posts}
+          month={month}
+          onPrevMonth={handlePrevMonth}
+          onNextMonth={handleNextMonth}
+          onClickPost={openEdit}
+          onAddClick={canEdit ? openCreate : undefined}
+        />
+      )}
+      <SchedulePostModal
+        open={showModal}
+        post={selectedPost}
+        defaultDate={defaultDate}
+        clientId={clientId}
+        onClose={() => setShowModal(false)}
+        onSave={handleSave}
+      />
     </div>
   );
 }

@@ -18,6 +18,8 @@ import jobsRouter from "./routes/jobs.js";
 import agentsRouter from "./routes/agents.js";
 import suggestionsRouter from "./routes/suggestions.js";
 import weeklyRouter from "./routes/weekly.js";
+import scheduledPostsRouter from "./routes/scheduledPosts.js";
+import mediaRouter from "./routes/media.js";
 import { startScheduler } from "./jobs/engine/scheduler.js";
 import { runCatchUp } from "./jobs/engine/catchUp.js";
 
@@ -70,6 +72,8 @@ app.use("/clients/:clientId/campaigns", campaignsRouter);
 app.use("/clients/:clientId/posts", postsRouter);
 app.use("/clients/:clientId/goals", goalsRouter);
 app.use("/clients/:clientId/users", usersRouter);
+app.use("/clients/:clientId/scheduled-posts", scheduledPostsRouter);
+app.use("/clients/:clientId/media", mediaRouter);
 app.use("/clients", clientsRouter);
 app.use("/dashboard", dashboardRouter);
 app.use("/jobs", jobsRouter);
