@@ -7,7 +7,7 @@ Sequência de desenvolvimento definida em 02/06/2026.
 
 ## Sequência
 
-### Fase 1 — Posts Orgânicos `[ ]`
+### Fase 1 — Posts Orgânicos `[x]`
 
 **Por que primeiro:** dados já existem no banco (`InstagramPost` + `PostAnalysis`) após o job `instagram-collection` + `post-analysis` rodarem. Zero mudança de backend — apenas frontend. Máximo valor com mínimo esforço. Valida o pipeline de IA para o cliente.
 

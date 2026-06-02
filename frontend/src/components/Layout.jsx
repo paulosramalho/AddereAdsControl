@@ -5,6 +5,7 @@ const NAV = [
   { to: "/dashboard", label: "Dashboard" },
   { to: "/leads", label: "Leads", hideForSuper: true },
   { to: "/campaigns", label: "Campanhas", hideForSuper: true },
+  { to: "/posts", label: "Posts", hideForSuper: true },
   { to: "/content", label: "Conteúdo", hideForSuper: true },
   { to: "/weekly", label: "Relatórios", hideForSuper: true },
   { to: "/clients", label: "Clientes", superOnly: true },
