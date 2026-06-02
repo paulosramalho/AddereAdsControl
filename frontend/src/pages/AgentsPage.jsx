@@ -135,11 +135,14 @@ export default function AgentsPage() {
       const res = await api.post("/jobs/" + jobName + "/run", clientId ? { clientId } : {});
       const data = await res.json();
       if (res.ok) {
-        addToast("Job iniciado com sucesso", "success");
-        load(); // mostra RUNNING imediatamente
+        addToast("Job concluído", "success");
         stopPolling();
-        pollRef.current = setInterval(load, 3000); // atualiza a cada 3s
-        setTimeout(() => { stopPolling(); setRunning({}); }, 60_000); // máx 60s
+        // pequeno delay para garantir commit na Neon antes de refrescar
+        setTimeout(async () => {
+          await load();
+          pollRef.current = setInterval(load, 3000);
+          setTimeout(() => { stopPolling(); setRunning((r) => { const n = {...r}; delete n[rkey]; return n; }); }, 60_000);
+        }, 400);
       } else {
         addToast(data.message ?? "Erro ao disparar job", "error");
         setRunning((r) => ({ ...r, [rkey]: false }));
