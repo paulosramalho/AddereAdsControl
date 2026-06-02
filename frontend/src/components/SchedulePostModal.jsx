@@ -66,11 +66,55 @@ export default function SchedulePostModal({ open, post, defaultDate, clientId, o
   const [showLibrary, setShowLibrary] = useState(false);
   const [libraryItems, setLibraryItems] = useState([]);
   const [loadingLibrary, setLoadingLibrary] = useState(false);
+  const [loadingBestTime, setLoadingBestTime] = useState(false);
+  const [bestTimeSlots, setBestTimeSlots] = useState([]);
+  const [loadingHashtags, setLoadingHashtags] = useState(false);
+
+  async function fetchBestTime() {
+    setLoadingBestTime(true);
+    setBestTimeSlots([]);
+    try {
+      const res = await api.get(`/clients/${clientId}/ai/best-time`);
+      const d = await res.json();
+      if (d.ok) {
+        setBestTimeSlots(d.slots);
+      } else {
+        addToast(d.message ?? "Erro ao buscar horários", "error");
+      }
+    } catch {
+      addToast("Erro ao buscar horários", "error");
+    } finally {
+      setLoadingBestTime(false);
+    }
+  }
+
+  async function suggestHashtags() {
+    if (!form.caption.trim()) {
+      addToast("Escreva a legenda antes de gerar hashtags", "warning");
+      return;
+    }
+    setLoadingHashtags(true);
+    try {
+      const res = await api.post(`/clients/${clientId}/ai/hashtags/suggest`, { caption: form.caption });
+      const d = await res.json();
+      if (d.ok) {
+        setForm((f) => ({ ...f, firstComment: d.hashtags }));
+        addToast("Hashtags geradas", "success");
+      } else {
+        addToast(d.message ?? "Erro ao gerar hashtags", "error");
+      }
+    } catch {
+      addToast("Erro ao gerar hashtags", "error");
+    } finally {
+      setLoadingHashtags(false);
+    }
+  }
 
   useEffect(() => {
     if (!open) return;
     setShowLibrary(false);
     setLibraryItems([]);
+    setBestTimeSlots([]);
 
     if (post) {
       const { date, time } = toBRTFields(post.scheduledAt);
@@ -297,7 +341,17 @@ export default function SchedulePostModal({ open, post, defaultDate, clientId, o
 
           {/* Data e hora */}
           <div>
-            <label className="block text-xs text-slate-400 mb-1">Data e hora (BRT)</label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-xs text-slate-400">Data e hora (BRT)</label>
+              <button
+                type="button"
+                onClick={fetchBestTime}
+                disabled={loadingBestTime}
+                className="text-xs text-amber-400 hover:text-amber-300 transition disabled:opacity-50"
+              >
+                {loadingBestTime ? "Buscando..." : "🕐 Melhor horário"}
+              </button>
+            </div>
             <div className="grid grid-cols-2 gap-3">
               <input
                 type="date"
@@ -314,6 +368,24 @@ export default function SchedulePostModal({ open, post, defaultDate, clientId, o
                 className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500"
               />
             </div>
+            {bestTimeSlots.length > 0 && (
+              <div className="mt-2 flex items-center gap-2">
+                <span className="text-xs text-slate-500">Sugestões:</span>
+                {bestTimeSlots.map((slot) => (
+                  <button
+                    key={slot}
+                    type="button"
+                    onClick={() => {
+                      setForm((f) => ({ ...f, time: slot }));
+                      setBestTimeSlots([]);
+                    }}
+                    className="px-2.5 py-1 rounded-md bg-amber-900/30 border border-amber-700/50 text-amber-300 text-xs hover:bg-amber-800/40 transition"
+                  >
+                    {slot}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Legenda */}
@@ -475,7 +547,17 @@ export default function SchedulePostModal({ open, post, defaultDate, clientId, o
           <div>
             <div className="flex items-center justify-between mb-1">
               <label className="text-xs text-slate-400">Primeiro comentário (opcional — hashtags)</label>
-              <span className="text-xs text-slate-500">{form.firstComment.length}/2200</span>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={suggestHashtags}
+                  disabled={loadingHashtags}
+                  className="text-xs text-purple-400 hover:text-purple-300 transition disabled:opacity-50"
+                >
+                  {loadingHashtags ? "Gerando..." : "✨ Sugerir hashtags"}
+                </button>
+                <span className="text-xs text-slate-500">{form.firstComment.length}/2200</span>
+              </div>
             </div>
             <textarea
               value={form.firstComment}
