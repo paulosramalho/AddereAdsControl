@@ -32,10 +32,18 @@ export function Layout({ children }) {
     <div className="flex h-screen bg-slate-900 text-white">
       <aside className="w-56 flex-shrink-0 bg-slate-800 border-r border-slate-700 flex flex-col">
         <div className="px-6 py-5 border-b border-slate-700">
-          <span className="font-bold text-base tracking-tight">Addere Ads</span>
-          {isSuper && <span className="block text-xs text-amber-400 mt-0.5">Super Admin</span>}
-          {!isSuper && payload?.email && (
-            <span className="block text-xs text-slate-500 mt-0.5 truncate">{payload.email}</span>
+          {isSuper ? (
+            <>
+              <span className="font-bold text-base tracking-tight">Addere Ads Control</span>
+              <span className="block text-xs text-amber-400 mt-0.5">Super Admin</span>
+            </>
+          ) : (
+            <>
+              <span className="font-bold text-base tracking-tight leading-tight block">
+                {payload?.clientName ?? "—"}
+              </span>
+              <span className="block text-xs text-slate-500 mt-0.5">By Addere Ads Control</span>
+            </>
           )}
         </div>
         <nav className="flex-1 px-3 py-4 flex flex-col gap-1">

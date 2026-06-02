@@ -26,7 +26,7 @@ function hashToken(raw) {
 
 function issueAccessToken(user) {
   return jwt.sign(
-    { sub: user.id, clientId: user.clientId, role: user.role },
+    { sub: user.id, clientId: user.clientId, role: user.role, clientName: user.client?.name ?? null },
     process.env.JWT_SECRET,
     { expiresIn: `${ACCESS_MINUTES}m` }
   );
@@ -47,7 +47,7 @@ const loginSchema = z.object({
 
 router.post("/login", authLimiter, validateBody(loginSchema), async (req, res) => {
   const { email, password } = req.body;
-  const user = await prisma.user.findUnique({ where: { email } });
+  const user = await prisma.user.findUnique({ where: { email }, include: { client: true } });
   if (!user || !user.active) {
     return res.status(401).json({ message: "Credenciais inválidas" });
   }
@@ -72,7 +72,7 @@ router.post("/refresh", async (req, res) => {
   const tokenHash = hashToken(raw);
   const stored = await prisma.refreshToken.findUnique({
     where: { tokenHash },
-    include: { user: true },
+    include: { user: { include: { client: true } } },
   });
 
   if (!stored || stored.revokedAt || stored.expiresAt < new Date()) {
