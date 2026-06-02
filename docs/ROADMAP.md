@@ -45,7 +45,7 @@ Sequência de desenvolvimento definida em 02/06/2026.
 
 ---
 
-### Fase 3 — Conteúdo em Abas `[ ]`
+### Fase 3 — Conteúdo em Abas `[x]`
 
 **Por que terceiro:** refactor natural depois que Posts existe. Reorganiza `ContentPage.jsx` em abas sem criar nova lógica — apenas move o que já existe e adiciona a aba de Posts.
 
