@@ -8,15 +8,15 @@ async function getCred(clientId, key) {
   return c ? decrypt(c.value) : null;
 }
 
+const FB_BASE = "https://graph.facebook.com/v22.0";
+
 async function fetchPostInsights(postId, accessToken) {
   try {
     const params = new URLSearchParams({
       metric: "impressions,reach",
       access_token: accessToken,
     });
-    const res = await fetch(
-      `https://graph.instagram.com/v22.0/${postId}/insights?${params}`
-    );
+    const res = await fetch(`${FB_BASE}/${postId}/insights?${params}`);
     if (!res.ok) return { impressions: 0, reach: 0 };
     const data = await res.json();
     const metrics = {};
@@ -45,9 +45,7 @@ export async function collectInstagram(client) {
     access_token: accessToken,
   });
 
-  const res = await fetch(
-    `https://graph.instagram.com/v22.0/${userId}/media?${params}`
-  );
+  const res = await fetch(`${FB_BASE}/${userId}/media?${params}`);
   if (!res.ok) {
     const txt = await res.text();
     throw new Error(`IG Graph API erro ${res.status}: ${txt.slice(0, 200)}`);
