@@ -12,6 +12,7 @@ import WeeklyPage from "./pages/WeeklyPage.jsx";
 import AgentsPage from "./pages/AgentsPage.jsx";
 import ClientEditPage from "./pages/ClientEditPage.jsx";
 import PostsPage from "./pages/PostsPage.jsx";
+import TeamPage from "./pages/TeamPage.jsx";
 
 function Guard({ children }) {
   const location = useLocation();
@@ -42,6 +43,7 @@ export default function App() {
                     <Route path="/clients/:clientId/campaigns" element={<CampaignsPage />} />
                     <Route path="/clients/:clientId/posts" element={<PostsPage />} />
                     <Route path="/clients/:clientId/edit" element={<ClientEditPage />} />
+                    <Route path="/team" element={<TeamPage />} />
                     <Route path="*" element={<Navigate to="/dashboard" replace />} />
                   </Routes>
                 </Layout>

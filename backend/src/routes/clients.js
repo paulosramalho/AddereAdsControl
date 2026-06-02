@@ -18,6 +18,8 @@ const clientSchema = z.object({
   primaryColor: z.string().optional().nullable(),
   logoUrl: z.string().url().optional().nullable().or(z.literal("")),
   timezone: z.string().optional(),
+  maxAdmins: z.number().int().min(0).optional().nullable(),
+  maxViewers: z.number().int().min(0).optional().nullable(),
 });
 
 router.get("/", async (_req, res) => {

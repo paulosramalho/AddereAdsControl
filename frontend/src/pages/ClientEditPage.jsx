@@ -62,6 +62,8 @@ export default function ClientEditPage() {
         contentTone: c.contentTone ?? "",
         timezone: c.timezone ?? "America/Belem",
         status: c.status ?? "TRIAL",
+        maxAdmins: c.maxAdmins !== null && c.maxAdmins !== undefined ? String(c.maxAdmins) : "",
+        maxViewers: c.maxViewers !== null && c.maxViewers !== undefined ? String(c.maxViewers) : "",
       });
       setCredentials(creds);
     } catch {
@@ -78,6 +80,8 @@ export default function ClientEditPage() {
       const payload = {
         ...form,
         keywords: form.keywords ? form.keywords.split(",").map((k) => k.trim()).filter(Boolean) : [],
+        maxAdmins: form.maxAdmins !== "" ? parseInt(form.maxAdmins, 10) : null,
+        maxViewers: form.maxViewers !== "" ? parseInt(form.maxViewers, 10) : null,
       };
       const res = await api.put(`/clients/${clientId}`, payload);
       if (res.ok) {
@@ -191,6 +195,9 @@ export default function ClientEditPage() {
 
   if (!client) return <div className="p-8 text-slate-400">Carregando...</div>;
 
+  const adminCount = users.filter((u) => u.role === "ADMIN").length;
+  const viewerCount = users.filter((u) => u.role === "VIEWER").length;
+
   return (
     <div className="p-6 space-y-8 max-w-3xl">
       <div className="flex items-start justify-between gap-3">
@@ -236,6 +243,30 @@ export default function ClientEditPage() {
             <option value="ACTIVE">ACTIVE</option>
             <option value="SUSPENDED">SUSPENDED</option>
           </select>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-xs text-slate-400 mb-1">Limite de Admins (vazio = ilimitado)</label>
+            <input
+              type="number"
+              min="0"
+              value={form.maxAdmins ?? ""}
+              onChange={(e) => setForm((f) => ({ ...f, maxAdmins: e.target.value }))}
+              placeholder="Ilimitado"
+              className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-xs text-slate-400 mb-1">Limite de Viewers (vazio = ilimitado)</label>
+            <input
+              type="number"
+              min="0"
+              value={form.maxViewers ?? ""}
+              onChange={(e) => setForm((f) => ({ ...f, maxViewers: e.target.value }))}
+              placeholder="Ilimitado"
+              className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+            />
+          </div>
         </div>
         <div className="flex justify-end pt-2 border-t border-slate-700">
           <button
@@ -333,7 +364,13 @@ export default function ClientEditPage() {
       </div>
 
       <div className="bg-slate-800 rounded-xl border border-slate-700 p-5 space-y-4">
-        <h2 className="font-medium text-white">Usuários</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="font-medium text-white">Usuários</h2>
+          <div className="flex gap-4 text-xs text-slate-400">
+            <span>{adminCount} admin{client.maxAdmins !== null ? ` / ${client.maxAdmins}` : ""}</span>
+            <span>{viewerCount} viewer{client.maxViewers !== null ? ` / ${client.maxViewers}` : ""}</span>
+          </div>
+        </div>
 
         <form onSubmit={saveUser} className="space-y-3">
           <p className="text-xs text-slate-400 font-medium">Criar novo usuário</p>

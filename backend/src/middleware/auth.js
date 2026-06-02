@@ -25,6 +25,7 @@ export function requireRole(...roles) {
 }
 
 export const requireSuperAdmin = requireRole("SUPER_ADMIN");
+export const requireAdminOrSuper = requireRole("ADMIN", "SUPER_ADMIN");
 
 export function requireSameClient(req, res, next) {
   if (req.user?.role === "SUPER_ADMIN") return next();

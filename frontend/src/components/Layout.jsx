@@ -7,6 +7,7 @@ const NAV = [
   { to: "/campaigns", label: "Campanhas", hideForSuper: true },
   { to: "/content", label: "Conteúdo", hideForSuper: true },
   { to: "/weekly", label: "Relatórios", hideForSuper: true },
+  { to: "/team", label: "Equipe", hideForSuper: true, adminOnly: true },
   { to: "/clients", label: "Clientes", superOnly: true },
   { to: "/agents", label: "Agentes", superOnly: true },
 ];
@@ -16,6 +17,7 @@ export function Layout({ children }) {
   const navigate = useNavigate();
   const payload = decodePayload(getToken());
   const isSuper = payload?.role === "SUPER_ADMIN";
+  const isAdmin = payload?.role === "ADMIN";
 
   function logout() {
     clearToken();
@@ -25,6 +27,7 @@ export function Layout({ children }) {
   const links = NAV.filter((n) => {
     if (n.superOnly && !isSuper) return false;
     if (n.hideForSuper && isSuper) return false;
+    if (n.adminOnly && !isAdmin) return false;
     return true;
   });
 

@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Client" ADD COLUMN IF NOT EXISTS "maxAdmins" INTEGER;
+ALTER TABLE "Client" ADD COLUMN IF NOT EXISTS "maxViewers" INTEGER;
