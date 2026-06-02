@@ -137,11 +137,11 @@ export default function AgentsPage() {
       if (res.ok) {
         addToast("Job concluído", "success");
         stopPolling();
-        // pequeno delay para garantir commit na Neon antes de refrescar
         setTimeout(async () => {
           await load();
+          setRunning((r) => { const n = { ...r }; delete n[rkey]; return n; });
           pollRef.current = setInterval(load, 3000);
-          setTimeout(() => { stopPolling(); setRunning((r) => { const n = {...r}; delete n[rkey]; return n; }); }, 60_000);
+          setTimeout(() => stopPolling(), 60_000);
         }, 400);
       } else {
         addToast(data.message ?? "Erro ao disparar job", "error");

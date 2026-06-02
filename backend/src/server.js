@@ -74,6 +74,10 @@ app.use("/weekly-reports", weeklyRouter);
 app.listen(PORT, async () => {
   console.log(`Addere backend rodando na porta ${PORT}`);
   await seedSuperAdmin().catch((err) => console.error("Seed error:", err.message));
+  await prisma.jobExecution.updateMany({
+    where: { status: "RUNNING" },
+    data: { status: "FAILED", error: "Interrompido — processo reiniciado", endedAt: new Date() },
+  }).catch((err) => console.error("[startup] heal stuck jobs:", err.message));
   startScheduler();
   runCatchUp().catch((err) => console.error("[catchUp] erro:", err.message));
 });
