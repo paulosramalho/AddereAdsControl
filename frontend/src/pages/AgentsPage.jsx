@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { api } from "../lib/api.js";
 import { useToast } from "../components/Toast.jsx";
 
@@ -98,12 +98,21 @@ export default function AgentsPage() {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [running, setRunning] = useState({});
+  const pollRef = useRef(null);
+
+  function stopPolling() {
+    if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
+  }
 
   async function load() {
     try {
       const res = await api.get("/agents/status");
       const data = await res.json();
-      if (data.clients) setClients(data.clients);
+      if (data.clients) {
+        setClients(data.clients);
+        const anyRunning = data.clients.some(c => c.jobs.some(j => j.status === "RUNNING"));
+        if (!anyRunning) { stopPolling(); setRunning({}); }
+      }
     } catch {
       addToast("Erro ao carregar status dos agentes", "error");
     } finally {
@@ -111,7 +120,10 @@ export default function AgentsPage() {
     }
   }
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+    return stopPolling;
+  }, []);
 
   async function trigger(jobName, clientId) {
     const rkey = `${clientId}-${jobName}`;
@@ -121,13 +133,16 @@ export default function AgentsPage() {
       const data = await res.json();
       if (res.ok) {
         addToast("Job iniciado com sucesso", "success");
-        setTimeout(load, 2000);
+        load(); // mostra RUNNING imediatamente
+        stopPolling();
+        pollRef.current = setInterval(load, 3000); // atualiza a cada 3s
+        setTimeout(() => { stopPolling(); setRunning({}); }, 60_000); // máx 60s
       } else {
         addToast(data.message ?? "Erro ao disparar job", "error");
+        setRunning((r) => ({ ...r, [rkey]: false }));
       }
     } catch {
       addToast("Erro ao disparar job", "error");
-    } finally {
       setRunning((r) => ({ ...r, [rkey]: false }));
     }
   }
