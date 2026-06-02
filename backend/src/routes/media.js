@@ -2,7 +2,7 @@ import { Router } from "express";
 import multer from "multer";
 import prisma from "../lib/prisma.js";
 import { requireAuth, requireSameClient, requireAdminOrSuper } from "../middleware/auth.js";
-import { isR2Configured, uploadBuffer } from "../lib/r2.js";
+import { isR2Configured, uploadBuffer, listObjects } from "../lib/r2.js";
 
 const router = Router({ mergeParams: true });
 router.use(requireAuth, requireSameClient);
@@ -17,6 +17,19 @@ const upload = multer({
       cb(new Error("Apenas imagens e vídeos são aceitos"));
     }
   },
+});
+
+router.get("/", async (req, res) => {
+  if (!isR2Configured()) return res.json({ ok: true, items: [] });
+  const { clientId } = req.params;
+  const client = await prisma.client.findUnique({ where: { id: clientId }, select: { slug: true } });
+  if (!client) return res.status(404).json({ ok: false, message: "Cliente não encontrado" });
+  try {
+    const items = await listObjects(client.slug);
+    res.json({ ok: true, items });
+  } catch (err) {
+    res.status(500).json({ ok: false, message: err.message });
+  }
 });
 
 router.post("/upload", requireAdminOrSuper, upload.single("file"), async (req, res) => {

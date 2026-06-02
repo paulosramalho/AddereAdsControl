@@ -1,4 +1,4 @@
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, ListObjectsV2Command } from "@aws-sdk/client-s3";
 import { randomUUID } from "crypto";
 import path from "path";
 
@@ -48,6 +48,25 @@ export async function uploadBuffer({ clientSlug, buffer, originalName, contentTy
     })
   );
   return `${process.env.R2_PUBLIC_URL_BASE}/${key}`;
+}
+
+export async function listObjects(clientSlug) {
+  const prefix = `clients/${clientSlug}/`;
+  const cmd = new ListObjectsV2Command({
+    Bucket: process.env.R2_BUCKET_NAME,
+    Prefix: prefix,
+    MaxKeys: 200,
+  });
+  const res = await getClient().send(cmd);
+  return (res.Contents ?? [])
+    .filter((o) => o.Size > 0)
+    .map((o) => ({
+      key: o.Key,
+      url: `${process.env.R2_PUBLIC_URL_BASE}/${o.Key}`,
+      size: o.Size,
+      lastModified: o.LastModified,
+    }))
+    .sort((a, b) => new Date(b.lastModified) - new Date(a.lastModified));
 }
 
 export async function uploadToR2({ clientSlug, filename, buffer, contentType }) {
