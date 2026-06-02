@@ -44,7 +44,7 @@ export default function TeamPage() {
       if (res.ok) {
         addToast("Usuário criado", "success");
         setUserForm({ email: "", name: "", password: "", role: "ADMIN" });
-        setUsers((prev) => [...prev, d.user]);
+        load();
       } else {
         addToast(d.message ?? "Erro ao criar usuário", "error");
       }
@@ -70,8 +70,8 @@ export default function TeamPage() {
       const d = await res.json();
       if (res.ok) {
         addToast("Usuário atualizado", "success");
-        setUsers((prev) => prev.map((u) => (u.id === d.user.id ? d.user : u)));
         setEditingUser(null);
+        load();
       } else {
         addToast(d.message ?? "Erro ao atualizar usuário", "error");
       }
@@ -88,7 +88,7 @@ export default function TeamPage() {
       const res = await api.del(`/clients/${clientId}/users/${userId}`);
       if (res.ok) {
         addToast("Usuário removido", "success");
-        setUsers((prev) => prev.filter((u) => u.id !== userId));
+        load();
       } else {
         addToast("Erro ao remover usuário", "error");
       }

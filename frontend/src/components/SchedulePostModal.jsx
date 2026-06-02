@@ -38,7 +38,7 @@ const EMPTY_FORM = (date) => ({
   contentSuggestionId: "",
 });
 
-export default function SchedulePostModal({ open, post, defaultDate, clientId, onClose, onSave }) {
+export default function SchedulePostModal({ open, post, defaultDate, clientId, onClose, onSave, initialValues }) {
   const { addToast } = useToast();
   const fileRef = useRef(null);
 
@@ -62,7 +62,7 @@ export default function SchedulePostModal({ open, post, defaultDate, clientId, o
         contentSuggestionId: post.contentSuggestionId ?? "",
       });
     } else {
-      setForm(EMPTY_FORM(defaultDate));
+      setForm({ ...EMPTY_FORM(defaultDate), ...(initialValues ?? {}) });
     }
 
     api.get("/suggestions/content?status=APPROVED")

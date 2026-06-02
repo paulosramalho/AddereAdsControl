@@ -31,13 +31,19 @@ const STATUS_LABEL = {
 
 const STATUS_FILTERS = ["PENDING", "APPROVED", "DONE", "REJECTED"];
 
+const SUGGESTION_FORMAT_MAP = { REEL: "REEL", CAROUSEL: "CAROUSEL", POST: "PHOTO", STORIES: "STORY" };
+
 function SuggestionsTab() {
+  const { clientId: paramClientId } = useParams();
+  const payload = decodePayload(getToken());
+  const clientId = paramClientId ?? payload?.clientId;
   const { addToast } = useToast();
   const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("PENDING");
   const [updating, setUpdating] = useState({});
   const [triggering, setTriggering] = useState(false);
+  const [scheduleModal, setScheduleModal] = useState({ open: false, initialValues: null });
 
   async function load() {
     try {
@@ -115,6 +121,16 @@ function SuggestionsTab() {
         </div>
       </div>
 
+      <SchedulePostModal
+        open={scheduleModal.open}
+        post={null}
+        defaultDate={new Date()}
+        clientId={clientId}
+        initialValues={scheduleModal.initialValues}
+        onClose={() => setScheduleModal({ open: false, initialValues: null })}
+        onSave={() => setScheduleModal({ open: false, initialValues: null })}
+      />
+
       {loading ? (
         <p className="text-slate-400">Carregando...</p>
       ) : suggestions.length === 0 ? (
@@ -157,6 +173,12 @@ function SuggestionsTab() {
                     Aprovar
                   </button>
                   <button
+                    onClick={() => setScheduleModal({ open: true, initialValues: { caption: s.title, contentSuggestionId: s.id, format: SUGGESTION_FORMAT_MAP[s.format] ?? "PHOTO" } })}
+                    className="flex-1 text-xs py-1.5 rounded-lg bg-purple-900/30 hover:bg-purple-900/60 text-purple-400 transition"
+                  >
+                    Agendar
+                  </button>
+                  <button
                     onClick={() => updateStatus(s.id, "REJECTED")}
                     disabled={updating[s.id]}
                     className="flex-1 text-xs py-1.5 rounded-lg bg-red-900/30 hover:bg-red-900/60 text-red-400 transition disabled:opacity-50"
@@ -166,13 +188,21 @@ function SuggestionsTab() {
                 </div>
               )}
               {statusFilter === "APPROVED" && (
-                <button
-                  onClick={() => updateStatus(s.id, "DONE")}
-                  disabled={updating[s.id]}
-                  className="text-xs py-1.5 rounded-lg bg-blue-700/40 hover:bg-blue-700/70 text-blue-300 transition disabled:opacity-50 mt-auto border-t border-slate-700 pt-2"
-                >
-                  Marcar como feito
-                </button>
+                <div className="flex gap-2 mt-auto pt-2 border-t border-slate-700">
+                  <button
+                    onClick={() => setScheduleModal({ open: true, initialValues: { caption: s.title, contentSuggestionId: s.id, format: SUGGESTION_FORMAT_MAP[s.format] ?? "PHOTO" } })}
+                    className="flex-1 text-xs py-1.5 rounded-lg bg-purple-900/30 hover:bg-purple-900/60 text-purple-400 transition"
+                  >
+                    Agendar
+                  </button>
+                  <button
+                    onClick={() => updateStatus(s.id, "DONE")}
+                    disabled={updating[s.id]}
+                    className="flex-1 text-xs py-1.5 rounded-lg bg-blue-700/40 hover:bg-blue-700/70 text-blue-300 transition disabled:opacity-50"
+                  >
+                    Concluído
+                  </button>
+                </div>
               )}
             </div>
           ))}
