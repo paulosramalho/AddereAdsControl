@@ -10,6 +10,7 @@ import { generateTrending } from "../jobs/content/trending.js";
 import { generateSuggestions } from "../jobs/content/suggestions.js";
 import { generateBoost } from "../jobs/content/boost.js";
 import { generateWeeklyReport } from "../jobs/reports/weekly.js";
+import { notifyInstagram } from "../jobs/instagram/notify.js";
 
 const router = Router();
 router.use(requireAuth, requireSuperAdmin);
@@ -23,6 +24,7 @@ const JOB_MAP = {
   "boost-suggestions":     (client) => generateBoost(client),
   "weekly-report":         (client) => generateWeeklyReport(client),
   "publish-scheduled":     (client) => publishScheduledPosts(client),
+  "instagram-notify":      (client) => notifyInstagram(client),
 };
 
 router.post("/:jobName/run", async (req, res) => {
