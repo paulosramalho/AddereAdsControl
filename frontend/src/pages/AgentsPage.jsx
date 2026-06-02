@@ -114,7 +114,30 @@ export default function AgentsPage() {
       if (data.clients) {
         setClients(data.clients);
         const anyRunning = data.clients.some(c => c.jobs.some(j => j.status === "RUNNING"));
-        if (!anyRunning) { stopPolling(); setRunning({}); }
+        if (!anyRunning) stopPolling();
+        setRunning((prev) => {
+          if (!Object.values(prev).some(Boolean)) return prev;
+          const next = { ...prev };
+          const completed = [];
+          for (const c of data.clients) {
+            for (const j of c.jobs) {
+              const key = `${c.clientId}-${j.name}`;
+              if (next[key] && j.status !== "RUNNING") {
+                delete next[key];
+                completed.push({ name: j.name, status: j.status });
+              }
+            }
+          }
+          if (completed.length > 0) {
+            setTimeout(() => {
+              completed.forEach(({ name, status }) => {
+                if (status === "SUCCESS") addToast(`${JOB_LABELS[name] ?? name}: concluído`, "success");
+                else addToast(`${JOB_LABELS[name] ?? name}: falhou`, "error");
+              });
+            }, 0);
+          }
+          return next;
+        });
       }
     } catch {
       addToast("Erro ao carregar status dos agentes", "error");
@@ -133,23 +156,22 @@ export default function AgentsPage() {
     setRunning((r) => ({ ...r, [rkey]: true }));
     try {
       const res = await api.post("/jobs/" + jobName + "/run", clientId ? { clientId } : {});
-      const data = await res.json();
       if (res.ok) {
-        addToast("Job concluído", "success");
         stopPolling();
-        setTimeout(async () => {
-          await load();
+        pollRef.current = setInterval(load, 2000);
+        // safety: limpa botão após 2 minutos se polling não detectar a transição
+        setTimeout(() => {
+          stopPolling();
           setRunning((r) => { const n = { ...r }; delete n[rkey]; return n; });
-          pollRef.current = setInterval(load, 3000);
-          setTimeout(() => stopPolling(), 60_000);
-        }, 400);
+        }, 120_000);
       } else {
+        const data = await res.json();
         addToast(data.message ?? "Erro ao disparar job", "error");
-        setRunning((r) => ({ ...r, [rkey]: false }));
+        setRunning((r) => { const n = { ...r }; delete n[rkey]; return n; });
       }
     } catch {
       addToast("Erro ao disparar job", "error");
-      setRunning((r) => ({ ...r, [rkey]: false }));
+      setRunning((r) => { const n = { ...r }; delete n[rkey]; return n; });
     }
   }
 

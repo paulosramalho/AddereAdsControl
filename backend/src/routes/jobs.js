@@ -45,17 +45,13 @@ router.post("/:jobName/run", async (req, res) => {
     clients = await prisma.client.findMany({ where: { status: "ACTIVE" } });
   }
 
-  const results = [];
   for (const client of clients) {
-    try {
-      const result = await runJob(client.id, jobName, () => fn(client));
-      results.push({ clientId: client.id, slug: client.slug, ...result });
-    } catch (err) {
-      results.push({ clientId: client.id, slug: client.slug, ok: false, error: err.message });
-    }
+    runJob(client.id, jobName, () => fn(client)).catch((err) => {
+      console.error(`[jobs][${jobName}][${client.slug}]`, err.message);
+    });
   }
 
-  res.json({ ok: true, results });
+  res.json({ ok: true });
 });
 
 router.get("/", (_req, res) => {
