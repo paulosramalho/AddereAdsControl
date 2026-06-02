@@ -94,6 +94,7 @@ Token armazenado em `localStorage` no frontend. Middleware `requireAuth` em `bac
 
 ## Documentação de features
 
+- **Estado do produto** (módulos implementados, roadmap, troubleshooting): `docs/ESTADO_PRODUTO.md`
 - **Backend Fase 1** (schema, auth, credentials, leads): `docs/BACKEND_FASE1.md`
 - **Campanhas** (GET /clients/:id/campaigns, CampaignsPage, acesso por role): `docs/CAMPANHAS.md`
 
