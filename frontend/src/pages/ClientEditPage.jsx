@@ -94,9 +94,9 @@ export default function ClientEditPage() {
         { value: credForm.value }
       );
       if (res.ok) {
+        setCredForm({ platform: "GOOGLE_ADS", key: PLATFORM_KEYS["GOOGLE_ADS"][0], value: "" });
+        await load();
         addToast("Credencial salva", "success");
-        setCredForm((f) => ({ ...f, value: "" }));
-        load();
       } else {
         const d = await res.json();
         addToast(d.message ?? "Erro ao salvar credencial", "error");
