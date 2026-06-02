@@ -13,6 +13,8 @@ import leadsRouter from "./routes/leads.js";
 import campaignsRouter from "./routes/campaigns.js";
 import jobsRouter from "./routes/jobs.js";
 import agentsRouter from "./routes/agents.js";
+import suggestionsRouter from "./routes/suggestions.js";
+import weeklyRouter from "./routes/weekly.js";
 import { startScheduler } from "./jobs/engine/scheduler.js";
 import { runCatchUp } from "./jobs/engine/catchUp.js";
 
@@ -66,6 +68,8 @@ app.use("/clients", clientsRouter);
 app.use("/dashboard", dashboardRouter);
 app.use("/jobs", jobsRouter);
 app.use("/agents", agentsRouter);
+app.use("/suggestions", suggestionsRouter);
+app.use("/weekly-reports", weeklyRouter);
 
 app.listen(PORT, async () => {
   console.log(`Addere backend rodando na porta ${PORT}`);
