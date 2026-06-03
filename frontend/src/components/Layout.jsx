@@ -97,9 +97,11 @@ export function Layout({ children }) {
         )}
 
         {/* Data e hora BRT */}
-        <div className="px-6 py-2.5 border-b border-slate-700/60">
-          <span className="block text-xs text-slate-400 tabular-nums">{clock.date}</span>
-          <span className="block text-xs text-slate-500 tabular-nums">{clock.time}</span>
+        <div className="px-3 py-2.5 border-b border-slate-700/60">
+          <div className="bg-slate-700/50 border border-slate-600/60 rounded-xl px-3 py-2.5 flex justify-between items-center">
+            <span className="text-sm font-bold text-slate-200 tabular-nums tracking-wide">{clock.date}</span>
+            <span className="text-sm font-bold text-slate-300 tabular-nums tracking-wide">{clock.time}</span>
+          </div>
         </div>
 
         {/* Navegação */}
@@ -125,28 +127,39 @@ export function Layout({ children }) {
         </nav>
 
         {/* Rodapé — usuário + botões */}
-        <div className="border-t border-slate-700 p-3 flex flex-col gap-1">
-          <div className="px-3 py-2">
-            <p className="text-xs font-medium text-slate-300 truncate">
-              {payload?.userName ?? "—"}
-            </p>
-            <p className="text-xs text-slate-500 truncate">{payload?.userEmail ?? ""}</p>
-            <span className="inline-block mt-1 text-[10px] px-1.5 py-0.5 rounded bg-slate-700 text-slate-400">
-              {roleLabel(payload?.role)}
-            </span>
+        <div className="border-t border-slate-700 p-3 flex flex-col gap-2">
+          {/* Card do usuário */}
+          <div className="bg-gradient-to-br from-indigo-600 to-indigo-700 rounded-xl px-3 py-2.5 shadow-lg">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-full bg-white/20 border-2 border-white/30 flex items-center justify-center text-sm font-bold text-white flex-shrink-0 select-none">
+                {(payload?.userName ?? "U").trim().split(/\s+/).map(p => p[0]).slice(0, 2).join("").toUpperCase()}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold text-white truncate leading-tight">
+                  {payload?.userName ?? "—"}
+                </p>
+                <p className="text-[10px] text-indigo-200 font-medium leading-tight">
+                  {roleLabel(payload?.role)}
+                </p>
+              </div>
+            </div>
           </div>
+
+          {/* Bloquear */}
           <button
             onClick={lock}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-slate-400 hover:bg-slate-700/50 hover:text-white transition"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-slate-600 hover:bg-slate-500 text-white text-sm font-semibold transition-all"
           >
-            <LogOut size={15} className="flex-shrink-0 rotate-180" />
+            <LogOut size={14} className="flex-shrink-0 rotate-180" />
             Bloquear Tela
           </button>
+
+          {/* Sair */}
           <button
             onClick={logout}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-slate-400 hover:bg-red-900/30 hover:text-red-400 transition"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-semibold transition-all shadow-lg hover:shadow-red-500/30"
           >
-            <LogOut size={15} className="flex-shrink-0" />
+            <LogOut size={14} className="flex-shrink-0" />
             Sair do Sistema
           </button>
         </div>
