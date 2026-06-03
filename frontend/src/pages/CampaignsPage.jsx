@@ -33,7 +33,7 @@ function StatCard({ label, value }) {
 export default function CampaignsPage() {
   const { clientId: paramClientId } = useParams();
   const clientId = paramClientId ?? decodePayload(getToken())?.clientId;
-  const toast = useToast();
+  const { addToast: toast } = useToast();
 
   const [days, setDays] = useState(30);
   const [data, setData] = useState(null);

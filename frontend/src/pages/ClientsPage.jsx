@@ -32,7 +32,7 @@ export default function ClientsPage() {
   const [saving, setSaving] = useState(false);
   const [statusTarget, setStatusTarget] = useState(null);
   const [igHealth, setIgHealth] = useState({});
-  const toast = useToast();
+  const { addToast: toast } = useToast();
   const navigate = useNavigate();
 
   async function checkIgHealth(clientId) {

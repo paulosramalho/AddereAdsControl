@@ -38,7 +38,7 @@ export default function LeadsPage() {
   const [form, setForm] = useState(EMPTY);
   const [saving, setSaving] = useState(false);
   const [delTarget, setDelTarget] = useState(null);
-  const toast = useToast();
+  const { addToast: toast } = useToast();
 
   const BASE = `/clients/${clientId}/leads`;
 

@@ -70,7 +70,7 @@ export default function DashboardPage() {
   const [goalBudget, setGoalBudget] = useState(0);
   const [goalNotes, setGoalNotes] = useState("");
   const [goalSaving, setGoalSaving] = useState(false);
-  const toast = useToast();
+  const { addToast: toast } = useToast();
 
   const payload = decodePayload(getToken());
   const isSuper = payload?.role === "SUPER_ADMIN";

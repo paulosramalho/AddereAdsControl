@@ -12,7 +12,7 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const locked = !!location.state?.locked;
-  const toast = useToast();
+  const { addToast: toast } = useToast();
 
   async function handleSubmit(e) {
     e.preventDefault();
