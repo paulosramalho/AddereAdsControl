@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { ToastProvider } from "./components/Toast.jsx";
 import { Layout } from "./components/Layout.jsx";
-import { isLoggedIn } from "./lib/auth.js";
+import { isLoggedIn, isLocked } from "./lib/auth.js";
 import { silentRefresh } from "./lib/api.js";
 import LoginPage from "./pages/LoginPage.jsx";
 import DashboardPage from "./pages/DashboardPage.jsx";
@@ -18,7 +18,7 @@ import TeamPage from "./pages/TeamPage.jsx";
 
 function Guard({ children }) {
   const location = useLocation();
-  const [status, setStatus] = useState(() => (isLoggedIn() ? "ok" : "checking"));
+  const [status, setStatus] = useState(() => (isLocked() || !isLoggedIn() ? "checking" : "ok"));
 
   useEffect(() => {
     if (status !== "checking") return;
@@ -26,7 +26,7 @@ function Guard({ children }) {
   }, [status]);
 
   if (status === "checking") return null;
-  if (status === "fail") return <Navigate to="/login" state={{ from: location }} replace />;
+  if (status === "fail") return <Navigate to="/login" state={{ from: location, locked: isLocked() }} replace />;
   return children;
 }
 

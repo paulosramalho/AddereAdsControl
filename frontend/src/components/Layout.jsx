@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { LayoutDashboard, Users, BarChart2, FileText, TrendingUp, UserCog, Building2, Bot, LogOut } from "lucide-react";
-import { clearToken, decodePayload, getToken } from "../lib/auth.js";
+import { clearToken, decodePayload, getToken, lockScreen } from "../lib/auth.js";
+import { api } from "../lib/api.js";
 
 const NAV = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -15,21 +16,27 @@ const NAV = [
 ];
 
 function useBRTClock() {
-  const [display, setDisplay] = useState("");
+  const [clock, setClock] = useState({ date: "", time: "" });
 
   useEffect(() => {
     function tick() {
       const now = new Date();
       const date = now.toLocaleDateString("pt-BR", { timeZone: "America/Belem", day: "2-digit", month: "2-digit", year: "numeric" });
-      const time = now.toLocaleTimeString("pt-BR", { timeZone: "America/Belem", hour: "2-digit", minute: "2-digit" });
-      setDisplay(`${date}  ${time}`);
+      const time = now.toLocaleTimeString("pt-BR", { timeZone: "America/Belem", hour: "2-digit", minute: "2-digit", second: "2-digit" });
+      setClock({ date, time });
     }
     tick();
-    const id = setInterval(tick, 10000);
+    const id = setInterval(tick, 1000);
     return () => clearInterval(id);
   }, []);
 
-  return display;
+  return clock;
+}
+
+function roleLabel(role) {
+  if (role === "SUPER_ADMIN") return "Super Admin";
+  if (role === "ADMIN") return "Administrador";
+  return "Usuário";
 }
 
 export function Layout({ children }) {
@@ -40,9 +47,15 @@ export function Layout({ children }) {
   const isAdmin = payload?.role === "ADMIN";
   const clock = useBRTClock();
 
-  function logout() {
+  async function logout() {
+    await api.post("/auth/logout", {}).catch(() => {});
     clearToken();
     navigate("/login");
+  }
+
+  function lock() {
+    lockScreen();
+    navigate("/login", { state: { locked: true } });
   }
 
   const links = NAV.filter((n) => {
@@ -75,7 +88,8 @@ export function Layout({ children }) {
 
         {/* Data e hora BRT */}
         <div className="px-6 py-2.5 border-b border-slate-700/60">
-          <span className="text-xs text-slate-500 tabular-nums">{clock}</span>
+          <span className="block text-xs text-slate-400 tabular-nums">{clock.date}</span>
+          <span className="block text-xs text-slate-500 tabular-nums">{clock.time}</span>
         </div>
 
         {/* Navegação */}
@@ -100,20 +114,30 @@ export function Layout({ children }) {
           })}
         </nav>
 
-        {/* Rodapé — usuário + botão Sair */}
+        {/* Rodapé — usuário + botões */}
         <div className="border-t border-slate-700 p-3 flex flex-col gap-1">
           <div className="px-3 py-2">
             <p className="text-xs font-medium text-slate-300 truncate">
-              {payload?.userName ?? payload?.userEmail ?? "—"}
+              {payload?.userName ?? "—"}
             </p>
             <p className="text-xs text-slate-500 truncate">{payload?.userEmail ?? ""}</p>
+            <span className="inline-block mt-1 text-[10px] px-1.5 py-0.5 rounded bg-slate-700 text-slate-400">
+              {roleLabel(payload?.role)}
+            </span>
           </div>
+          <button
+            onClick={lock}
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-slate-400 hover:bg-slate-700/50 hover:text-white transition"
+          >
+            <LogOut size={15} className="flex-shrink-0 rotate-180" />
+            Bloquear Tela
+          </button>
           <button
             onClick={logout}
             className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-slate-400 hover:bg-red-900/30 hover:text-red-400 transition"
           >
             <LogOut size={15} className="flex-shrink-0" />
-            Sair
+            Sair do Sistema
           </button>
         </div>
       </aside>

@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { api } from "../lib/api.js";
-import { setToken } from "../lib/auth.js";
+import { setToken, unlockScreen } from "../lib/auth.js";
 import { useToast } from "../components/Toast.jsx";
 
 export default function LoginPage() {
@@ -10,6 +10,8 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const locked = !!location.state?.locked;
   const toast = useToast();
 
   async function handleSubmit(e) {
@@ -22,8 +24,9 @@ export default function LoginPage() {
         toast(data.message ?? "Credenciais inválidas", "error");
         return;
       }
+      unlockScreen();
       setToken(data.token);
-      navigate("/dashboard");
+      navigate(location.state?.from ?? "/dashboard");
     } catch {
       toast("Erro de conexão com o servidor", "error");
     } finally {
@@ -35,7 +38,9 @@ export default function LoginPage() {
     <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
       <div className="glass-card rounded-2xl p-8 w-full max-w-sm">
         <h1 className="text-xl font-bold text-white mb-1">Addere Ads Control</h1>
-        <p className="text-slate-400 text-sm mb-6">Faça login para continuar</p>
+        <p className="text-slate-400 text-sm mb-6">
+          {locked ? "Tela bloqueada — faça login para continuar" : "Faça login para continuar"}
+        </p>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div>
             <label className="block text-xs text-slate-400 mb-1">E-mail</label>
