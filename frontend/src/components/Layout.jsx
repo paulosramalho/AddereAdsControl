@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Users, BarChart2, FileText, TrendingUp, UserCog, Building2, Bot, LogOut, User } from "lucide-react";
+import { LayoutDashboard, Users, BarChart2, FileText, TrendingUp, UserCog, Building2, Bot, LogOut, User, Settings } from "lucide-react";
 import { clearToken, decodePayload, getToken, isLocked, lockScreen, unlockScreen } from "../lib/auth.js";
 import { api } from "../lib/api.js";
 import LockScreen from "./LockScreen.jsx";
@@ -14,6 +14,7 @@ const NAV = [
   { to: "/team", label: "Equipe", icon: UserCog, hideForSuper: true, adminOnly: true },
   { to: "/clients", label: "Clientes", icon: Building2, superOnly: true },
   { to: "/agents", label: "Agentes", icon: Bot, superOnly: true },
+  { to: "/settings", label: "Configurações", icon: Settings, hideForSuper: true },
   { to: "/profile", label: "Meu Perfil", icon: User },
 ];
 

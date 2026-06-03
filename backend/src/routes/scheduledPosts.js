@@ -24,7 +24,22 @@ router.get("/", async (req, res) => {
     include: { contentSuggestion: true },
     orderBy: { scheduledAt: "asc" },
   });
-  res.json({ ok: true, posts });
+
+  const igIds = posts.filter((p) => p.instagramPostId).map((p) => p.instagramPostId);
+  let igMap = {};
+  if (igIds.length) {
+    const igPosts = await prisma.instagramPost.findMany({
+      where: { clientId, postId: { in: igIds } },
+      select: { postId: true, likes: true, comments: true, reach: true, impressions: true, permalink: true },
+    });
+    igMap = Object.fromEntries(igPosts.map((p) => [p.postId, p]));
+  }
+  const enriched = posts.map((p) => ({
+    ...p,
+    igMetrics: p.instagramPostId ? (igMap[p.instagramPostId] ?? null) : null,
+  }));
+
+  res.json({ ok: true, posts: enriched });
 });
 
 const createSchema = z.object({
@@ -70,7 +85,16 @@ router.get("/:postId", async (req, res) => {
   });
   if (!post || post.clientId !== clientId)
     return res.status(404).json({ ok: false, message: "Post não encontrado" });
-  res.json({ ok: true, post });
+
+  let igMetrics = null;
+  if (post.instagramPostId) {
+    igMetrics = await prisma.instagramPost.findFirst({
+      where: { clientId, postId: post.instagramPostId },
+      select: { postId: true, likes: true, comments: true, reach: true, impressions: true, permalink: true },
+    });
+  }
+
+  res.json({ ok: true, post: { ...post, igMetrics } });
 });
 
 const updateSchema = z.object({

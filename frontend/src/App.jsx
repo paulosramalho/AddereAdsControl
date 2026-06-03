@@ -16,6 +16,7 @@ import ClientEditPage from "./pages/ClientEditPage.jsx";
 import PostsPage from "./pages/PostsPage.jsx";
 import TeamPage from "./pages/TeamPage.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
+import SettingsPage from "./pages/SettingsPage.jsx";
 
 function Guard({ children }) {
   const location = useLocation();
@@ -59,6 +60,7 @@ export default function App() {
                     <Route path="/clients/:clientId/posts" element={<PostsPage />} />
                     <Route path="/clients/:clientId/edit" element={<ClientEditPage />} />
                     <Route path="/team" element={<TeamPage />} />
+                    <Route path="/settings" element={<SettingsPage />} />
                     <Route path="/profile" element={<ProfilePage />} />
                     <Route path="*" element={<Navigate to="/dashboard" replace />} />
                   </Routes>
