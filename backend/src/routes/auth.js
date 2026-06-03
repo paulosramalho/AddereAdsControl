@@ -6,6 +6,7 @@ import { z } from "zod";
 import prisma from "../lib/prisma.js";
 import { validateBody } from "../middleware/validate.js";
 import { authLimiter } from "../middleware/rateLimit.js";
+import { requireAuth } from "../middleware/auth.js";
 
 const router = Router();
 
@@ -93,6 +94,57 @@ router.post("/refresh", async (req, res) => {
   const refreshRaw = await issueRefreshToken(stored.user.id);
   res.cookie("refresh_token", refreshRaw, cookieOpts(REFRESH_DAYS));
   res.json({ ok: true, token });
+});
+
+const patchMeSchema = z.object({
+  name: z.string().min(1).optional(),
+  email: z.string().email().optional(),
+  currentPassword: z.string().optional(),
+  newPassword: z.string().min(8).optional(),
+});
+
+router.patch("/me", requireAuth, validateBody(patchMeSchema), async (req, res) => {
+  const { name, email, currentPassword, newPassword } = req.body;
+
+  const user = await prisma.user.findUnique({
+    where: { id: req.user.id },
+    include: { client: true },
+  });
+  if (!user) return res.status(404).json({ ok: false, message: "Usuário não encontrado" });
+
+  if (newPassword) {
+    if (!currentPassword) {
+      return res.status(400).json({ ok: false, message: "Informe a senha atual para alterar a senha" });
+    }
+    const valid = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!valid) {
+      return res.status(401).json({ ok: false, message: "Senha atual incorreta" });
+    }
+  }
+
+  const data = {};
+  if (name !== undefined) data.name = name;
+  if (email !== undefined) data.email = email;
+  if (newPassword) data.passwordHash = await bcrypt.hash(newPassword, 10);
+
+  try {
+    const updated = await prisma.user.update({
+      where: { id: req.user.id },
+      data,
+      include: { client: true },
+    });
+    const token = issueAccessToken(updated);
+    return res.json({
+      ok: true,
+      token,
+      user: { id: updated.id, email: updated.email, name: updated.name, role: updated.role, clientId: updated.clientId },
+    });
+  } catch (err) {
+    if (err.code === "P2002") {
+      return res.status(409).json({ ok: false, message: "E-mail já em uso" });
+    }
+    throw err;
+  }
 });
 
 router.post("/logout", async (req, res) => {
