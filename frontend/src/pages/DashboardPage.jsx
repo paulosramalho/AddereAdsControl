@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Navigate } from "react-router-dom";
 import {
   LineChart,
   Line,
@@ -74,6 +75,8 @@ export default function DashboardPage() {
 
   const payload = decodePayload(getToken());
   const clientId = payload?.clientId;
+
+  if (payload?.role === "SUPER_ADMIN") return <Navigate to="/clients" replace />;
 
   const now = new Date();
   const currentMonthParam = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
