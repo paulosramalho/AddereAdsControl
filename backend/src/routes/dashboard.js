@@ -6,7 +6,10 @@ const router = Router();
 router.use(requireAuth);
 
 router.get("/summary", async (req, res) => {
-  const clientId = req.user.clientId;
+  let clientId = req.user.clientId;
+  if (!clientId && req.user.role === "SUPER_ADMIN" && req.query.clientId) {
+    clientId = req.query.clientId;
+  }
   const where = clientId ? { clientId } : {};
 
   const now = new Date();

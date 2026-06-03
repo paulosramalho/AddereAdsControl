@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Navigate } from "react-router-dom";
 import {
   LineChart,
   Line,
@@ -74,18 +73,40 @@ export default function DashboardPage() {
   const toast = useToast();
 
   const payload = decodePayload(getToken());
+  const isSuper = payload?.role === "SUPER_ADMIN";
   const clientId = payload?.clientId;
 
-  if (payload?.role === "SUPER_ADMIN") return <Navigate to="/clients" replace />;
+  const [clients, setClients] = useState([]);
+  const [selectedClientId, setSelectedClientId] = useState("");
 
   const now = new Date();
   const currentMonthParam = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   const currentMonthLabel = now.toLocaleString("pt-BR", { timeZone: "America/Belem", month: "long", year: "numeric" });
 
   useEffect(() => {
-    const fetches = [api.get("/dashboard/summary").then((r) => r.json())];
-    if (clientId) {
-      fetches.push(api.get(`/clients/${clientId}/goals/current`).then((r) => r.json()));
+    if (isSuper) {
+      api.get("/clients").then((r) => r.json()).then((data) => {
+        if (Array.isArray(data)) setClients(data);
+      }).catch(() => {});
+    }
+  }, [isSuper]);
+
+  const activeClientId = isSuper ? selectedClientId : clientId;
+
+  useEffect(() => {
+    if (isSuper && !selectedClientId) { setLoading(false); return; }
+
+    setLoading(true);
+    setSummary(null);
+    setGoal(null);
+
+    const summaryUrl = isSuper
+      ? `/dashboard/summary?clientId=${selectedClientId}`
+      : "/dashboard/summary";
+
+    const fetches = [api.get(summaryUrl).then((r) => r.json())];
+    if (activeClientId) {
+      fetches.push(api.get(`/clients/${activeClientId}/goals/current`).then((r) => r.json()));
     }
     Promise.all(fetches)
       .then(([summaryRes, goalRes]) => {
@@ -95,7 +116,7 @@ export default function DashboardPage() {
       })
       .catch(() => toast("Erro de conexão", "error"))
       .finally(() => setLoading(false));
-  }, []);
+  }, [selectedClientId, clientId]);
 
   const chartData = (summary?.dailySpend ?? []).map((d) => ({
     date: new Date(d.date).toLocaleDateString("pt-BR", {
@@ -126,7 +147,7 @@ export default function DashboardPage() {
   async function saveGoal() {
     setGoalSaving(true);
     try {
-      const res = await api.put(`/clients/${clientId}/goals/${currentMonthParam}`, {
+      const res = await api.put(`/clients/${activeClientId}/goals/${currentMonthParam}`, {
         leadsGoal: goalLeads !== "" ? parseInt(goalLeads) : null,
         budgetCents: goalBudget || null,
         notes: goalNotes || null,
@@ -149,7 +170,27 @@ export default function DashboardPage() {
   return (
     <div className="p-6 max-w-5xl mx-auto">
       <h1 className="text-2xl font-bold text-white mb-6">Dashboard</h1>
-      {loading ? (
+
+      {isSuper && (
+        <div className="mb-6">
+          <select
+            value={selectedClientId}
+            onChange={(e) => setSelectedClientId(e.target.value)}
+            className="bg-slate-800 border border-slate-700 text-white text-sm rounded-lg px-4 py-2.5 focus:outline-none focus:border-indigo-500 min-w-[260px]"
+          >
+            <option value="">— Selecione um cliente —</option>
+            {clients.map((c) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {isSuper && !selectedClientId ? (
+        <div className="glass-card rounded-xl p-12 text-center">
+          <p className="text-slate-400">Selecione um cliente para visualizar o dashboard.</p>
+        </div>
+      ) : loading ? (
         <p className="text-slate-400">Carregando…</p>
       ) : (
         <div className="space-y-6">
@@ -159,7 +200,7 @@ export default function DashboardPage() {
             <StatCard label="Sugestões de conteúdo" value={summary?.totalSuggestions} />
           </div>
 
-          {clientId && (
+          {activeClientId && (
             <div className="glass-card rounded-xl p-5">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-sm font-semibold text-white">
