@@ -91,9 +91,7 @@ export function Layout({ children }) {
             </span>
             <span className="flex items-center justify-end gap-1.5 text-xs text-slate-500 italic mt-1.5">
               By Addere Ads Control
-              <div className="bg-white rounded px-1 py-0.5 flex items-center">
-                <img src="/logo-addere.png" alt="Addere" className="h-5 object-contain" />
-              </div>
+              <img src="/logo-addere.png" alt="Addere" className="h-5 object-contain invert mix-blend-screen" />
             </span>
           </div>
         )}
