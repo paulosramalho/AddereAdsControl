@@ -18,14 +18,115 @@ const NICHE_DEFAULTS = {
     youtubeQueries: ["nutrição saudável", "dieta emagrecimento", "alimentação funcional"],
   },
   arquitetura: {
-    rss: [],
-    subreddits: ["arquitetura"],
+    rss: [
+      { name: "ArchDaily BR", url: "https://www.archdaily.com.br/br/feed" },
+    ],
+    subreddits: ["arquitetura", "designinteriores"],
     youtubeQueries: ["projeto arquitetônico", "decoração interiores", "reforma de apartamento"],
   },
   financas: {
-    rss: [],
-    subreddits: ["investimentos", "financaspessoais"],
+    rss: [
+      { name: "InfoMoney", url: "https://www.infomoney.com.br/feed/" },
+      { name: "Valor Investe", url: "https://valorinveste.globo.com/feed/" },
+    ],
+    subreddits: ["investimentos", "financaspessoais", "brfinancas"],
     youtubeQueries: ["finanças pessoais", "investimentos brasil", "educação financeira"],
+  },
+  contabilidade: {
+    rss: [
+      { name: "Jornal Contábil", url: "https://jornalcontabil.com.br/feed/" },
+      { name: "Portal Contábeis", url: "https://www.contabeis.com.br/rss/noticias/" },
+    ],
+    subreddits: ["contabilidade", "empreendedorismo"],
+    youtubeQueries: ["contabilidade empresarial", "declaração imposto renda", "simples nacional mei"],
+  },
+  saude: {
+    rss: [
+      { name: "CFM Notícias", url: "https://portal.cfm.org.br/feed/" },
+      { name: "Saúde Business", url: "https://saudebusiness.com/feed/" },
+    ],
+    subreddits: ["medicina", "saudemental"],
+    youtubeQueries: ["saúde preventiva brasil", "medicina integrativa", "saúde pública"],
+  },
+  psicologia: {
+    rss: [
+      { name: "CFP Notícias", url: "https://site.cfp.org.br/feed/" },
+      { name: "Psicologia Viva", url: "https://blog.psicologiaviva.com.br/feed/" },
+    ],
+    subreddits: ["psicologia", "saudemental"],
+    youtubeQueries: ["saúde mental brasil", "terapia cognitiva comportamental", "ansiedade depressão tratamento"],
+  },
+  tecnologia: {
+    rss: [
+      { name: "Tecnoblog", url: "https://tecnoblog.net/feed/" },
+      { name: "Olhar Digital", url: "https://olhardigital.com.br/feed/" },
+      { name: "Manual do Usuário", url: "https://manualdousuario.net/feed/" },
+    ],
+    subreddits: ["brdev", "programacao", "startupbrasil"],
+    youtubeQueries: ["tecnologia brasil", "inteligência artificial", "programação iniciante"],
+  },
+  marketing: {
+    rss: [
+      { name: "Rock Content", url: "https://rockcontent.com/br/blog/feed/" },
+      { name: "Neil Patel BR", url: "https://neilpatel.com/br/feed/" },
+      { name: "Resultados Digitais", url: "https://resultadosdigitais.com.br/blog/feed/" },
+    ],
+    subreddits: ["marketing", "empreendedorismo", "trafegopago"],
+    youtubeQueries: ["marketing digital brasil", "tráfego pago google meta", "copywriting vendas"],
+  },
+  educacao: {
+    rss: [
+      { name: "Nova Escola", url: "https://novaescola.org.br/feed" },
+      { name: "Porvir", url: "https://porvir.org/feed/" },
+    ],
+    subreddits: ["educacaobrasil", "professores"],
+    youtubeQueries: ["educação brasil", "metodologias ativas ensino", "tecnologia educação"],
+  },
+  fitness: {
+    rss: [
+      { name: "CREF Blog", url: "https://www.crefsp.gov.br/rss" },
+    ],
+    subreddits: ["treinos", "fitness", "corrida"],
+    youtubeQueries: ["treino funcional brasil", "musculação iniciante", "emagrecimento exercício"],
+  },
+  imoveis: {
+    rss: [
+      { name: "CRECI Notícias", url: "https://www.creci-go.gov.br/feed/" },
+      { name: "Zap Imóveis Blog", url: "https://revista.zapimoveis.com.br/feed/" },
+    ],
+    subreddits: ["imoveis", "investimentos"],
+    youtubeQueries: ["mercado imobiliário brasil", "como comprar imóvel", "investimento imóveis renda"],
+  },
+  beleza: {
+    rss: [],
+    subreddits: ["beleza", "maquiagem", "skincare"],
+    youtubeQueries: ["skincare rotina brasil", "maquiagem passo a passo", "tratamentos estéticos"],
+  },
+  gastronomia: {
+    rss: [
+      { name: "Panelinha", url: "https://www.panelinha.com.br/feed" },
+    ],
+    subreddits: ["gastronomia", "cozinhando", "churrasco"],
+    youtubeQueries: ["gastronomia brasileira tendências", "receitas virais", "restaurante gestão"],
+  },
+  moda: {
+    rss: [],
+    subreddits: ["moda", "streetwear"],
+    youtubeQueries: ["moda brasil tendências", "estilo pessoal", "moda sustentável"],
+  },
+  veterinaria: {
+    rss: [
+      { name: "CFMV", url: "https://www.cfmv.gov.br/feed/" },
+    ],
+    subreddits: ["veterinaria", "pets", "caes"],
+    youtubeQueries: ["saúde animal brasil", "cuidados pets", "medicina veterinária"],
+  },
+  odontologia: {
+    rss: [
+      { name: "CFO Notícias", url: "https://website.cfo.org.br/feed/" },
+    ],
+    subreddits: ["odontologia"],
+    youtubeQueries: ["saúde bucal brasil", "clareamento dental", "implante dentário"],
   },
 };
 
