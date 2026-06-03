@@ -81,11 +81,8 @@ export function Layout({ children }) {
         {/* Header — logo / cliente */}
         {isSuper ? (
           <div className="px-4 py-4 border-b border-slate-700 flex flex-col items-center gap-2">
-            <div className="bg-white rounded-xl px-4 py-2 flex items-center justify-center shadow-sm">
-              <img src="/logo-addere.png" alt="Addere" className="h-10 object-contain" />
-            </div>
+            <img src="/logo-addere.png" alt="Addere" className="h-10 object-contain brightness-0 invert" />
             <span className="font-semibold text-sm tracking-tight text-white">Addere Ads Control</span>
-            <span className="text-[10px] text-amber-400 font-medium">Super Admin</span>
           </div>
         ) : (
           <div className="px-4 py-4 border-b border-slate-700">
