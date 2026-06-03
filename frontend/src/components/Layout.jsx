@@ -81,7 +81,7 @@ export function Layout({ children }) {
         {/* Header — logo / cliente */}
         {isSuper ? (
           <div className="px-4 py-4 border-b border-slate-700 flex flex-col items-center gap-2">
-            <img src="/logo-addere.png" alt="Addere" className="h-10 object-contain brightness-0 invert" />
+            <img src="/logo-addere.png" alt="Addere" className="h-10 object-contain invert mix-blend-screen" />
             <span className="font-semibold text-sm tracking-tight text-white">Addere Ads Control</span>
           </div>
         ) : (
