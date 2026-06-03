@@ -77,7 +77,7 @@ export default function DashboardPage() {
 
   const now = new Date();
   const currentMonthParam = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-  const currentMonthLabel = now.toLocaleString("pt-BR", { month: "long", year: "numeric" });
+  const currentMonthLabel = now.toLocaleString("pt-BR", { timeZone: "America/Belem", month: "long", year: "numeric" });
 
   useEffect(() => {
     const fetches = [api.get("/dashboard/summary").then((r) => r.json())];
@@ -101,7 +101,6 @@ export default function DashboardPage() {
       month: "2-digit",
     }),
     spendCents: d.spendCents,
-    value: d.spendCents / 100,
   }));
 
   const leadsGoalPct =
@@ -244,15 +243,13 @@ export default function DashboardPage() {
                     tick={{ fontSize: 11, fill: "#94a3b8" }}
                     tickLine={false}
                     axisLine={false}
-                    tickFormatter={(v) =>
-                      `R$${v.toLocaleString("pt-BR", { maximumFractionDigits: 0 })}`
-                    }
+                    tickFormatter={(v) => `R$ ${brlFromCentavos(v)}`}
                     width={72}
                   />
                   <Tooltip content={<SpendTooltip />} />
                   <Line
                     type="monotone"
-                    dataKey="value"
+                    dataKey="spendCents"
                     stroke="#6366f1"
                     strokeWidth={2}
                     dot={false}

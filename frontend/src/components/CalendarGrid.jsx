@@ -20,7 +20,7 @@ function sameDay(a, b) {
 export default function CalendarGrid({ posts = [], month, onPrevMonth, onNextMonth, onClickPost, onAddClick }) {
   const year = month.getFullYear();
   const monthIdx = month.getMonth();
-  const monthName = month.toLocaleString("pt-BR", { month: "long", year: "numeric" });
+  const monthName = month.toLocaleString("pt-BR", { timeZone: "America/Belem", month: "long", year: "numeric" });
   const startOffset = new Date(year, monthIdx, 1).getDay();
   const today = new Date();
 
