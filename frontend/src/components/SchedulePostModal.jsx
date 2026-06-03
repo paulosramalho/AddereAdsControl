@@ -135,7 +135,8 @@ export default function SchedulePostModal({ open, post, defaultDate, clientId, o
       .then((r) => r.json())
       .then((d) => setSuggestions(d.data ?? []))
       .catch(() => {});
-  }, [open, post, defaultDate]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [open, post]); // defaultDate excluído intencionalmente — só usamos no momento da abertura
 
   if (!open) return null;
 

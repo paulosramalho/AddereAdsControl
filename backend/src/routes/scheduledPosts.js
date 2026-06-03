@@ -40,23 +40,26 @@ const createSchema = z.object({
 router.post("/", requireAdminOrSuper, validateBody(createSchema), async (req, res) => {
   const { clientId } = req.params;
   const { format, caption, firstComment, mediaUrls, scheduledAt, contentSuggestionId, status } = req.body;
+  try {
+    const data = {
+      clientId,
+      format,
+      caption,
+      firstComment,
+      mediaUrls,
+      scheduledAt: new Date(scheduledAt),
+      status,
+    };
+    if (contentSuggestionId) data.contentSuggestionId = contentSuggestionId;
 
-  const data = {
-    clientId,
-    format,
-    caption,
-    firstComment,
-    mediaUrls,
-    scheduledAt: new Date(scheduledAt),
-    status,
-  };
-  if (contentSuggestionId) data.contentSuggestionId = contentSuggestionId;
-
-  const post = await prisma.scheduledPost.create({
-    data,
-    include: { contentSuggestion: true },
-  });
-  res.status(201).json({ ok: true, post });
+    const post = await prisma.scheduledPost.create({
+      data,
+      include: { contentSuggestion: true },
+    });
+    res.status(201).json({ ok: true, post });
+  } catch (err) {
+    res.status(500).json({ ok: false, message: err.message });
+  }
 });
 
 router.get("/:postId", async (req, res) => {
