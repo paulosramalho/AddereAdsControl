@@ -14,6 +14,11 @@ async function doRefresh() {
   return refreshing;
 }
 
+export async function silentRefresh() {
+  await doRefresh();
+  return !!getToken();
+}
+
 async function request(path, opts = {}) {
   const token = getToken();
   const headers = {
