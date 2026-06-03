@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import prisma from "../lib/prisma.js";
-import { encrypt } from "../lib/crypto.js";
+import { encrypt, decrypt } from "../lib/crypto.js";
 import { requireAuth, requireSuperAdmin } from "../middleware/auth.js";
 import { validateBody } from "../middleware/validate.js";
 
@@ -46,6 +46,30 @@ router.put("/:platform/:key", validateBody(upsertSchema), async (req, res) => {
     select: { id: true, platform: true, key: true, expiresAt: true, issuedAt: true, updatedAt: true },
   });
   res.json(cred);
+});
+
+router.get("/instagram/health", async (req, res) => {
+  const { clientId } = req.params;
+  const cred = await prisma.clientCredential.findUnique({
+    where: { clientId_platform_key: { clientId, platform: "INSTAGRAM", key: "access_token" } },
+  });
+  if (!cred) return res.json({ status: "missing" });
+
+  let token;
+  try { token = decrypt(cred.value); } catch {
+    return res.json({ status: "error", error: "Erro ao decifrar credencial" });
+  }
+
+  try {
+    const r = await fetch(`https://graph.facebook.com/v22.0/me?fields=id,name&access_token=${token}`);
+    const data = await r.json();
+    if (data.error) {
+      return res.json({ status: "expired", error: data.error.message });
+    }
+    return res.json({ status: "valid", accountId: data.id, accountName: data.name });
+  } catch {
+    return res.json({ status: "error", error: "Falha ao contatar a API do Instagram" });
+  }
 });
 
 router.delete("/:platform/:key", async (req, res) => {

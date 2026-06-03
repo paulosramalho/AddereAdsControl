@@ -17,6 +17,13 @@ const EMPTY = {
   keywords: "", contentTone: "", primaryColor: "#6366f1", timezone: "America/Belem",
 };
 
+const IG_STATUS = {
+  valid:   { label: "Token OK",       cls: "bg-emerald-900/40 text-emerald-300" },
+  expired: { label: "Token expirado", cls: "bg-red-900/40 text-red-300" },
+  missing: { label: "Sem token IG",   cls: "bg-slate-700 text-slate-400" },
+  error:   { label: "Erro ao checar", cls: "bg-amber-900/40 text-amber-300" },
+};
+
 export default function ClientsPage() {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -24,8 +31,20 @@ export default function ClientsPage() {
   const [form, setForm] = useState(EMPTY);
   const [saving, setSaving] = useState(false);
   const [statusTarget, setStatusTarget] = useState(null);
+  const [igHealth, setIgHealth] = useState({});
   const toast = useToast();
   const navigate = useNavigate();
+
+  async function checkIgHealth(clientId) {
+    setIgHealth((h) => ({ ...h, [clientId]: { status: "loading" } }));
+    try {
+      const r = await api.get(`/clients/${clientId}/credentials/instagram/health`);
+      const d = await r.json();
+      setIgHealth((h) => ({ ...h, [clientId]: d }));
+    } catch {
+      setIgHealth((h) => ({ ...h, [clientId]: { status: "error", error: "Falha de conexão" } }));
+    }
+  }
 
   function loadClients() {
     setLoading(true);
@@ -35,6 +54,7 @@ export default function ClientsPage() {
       .then((data) => {
         if (!Array.isArray(data)) { toast(data.message ?? "Erro ao carregar clientes", "error"); return; }
         setClients(data);
+        data.forEach((c) => checkIgHealth(c.id));
       })
       .catch(() => toast("Erro de conexão", "error"))
       .finally(() => setLoading(false));
@@ -126,6 +146,29 @@ export default function ClientsPage() {
                 </span>
               </div>
               {client.niche && <p className="text-slate-400 text-xs">{client.niche}</p>}
+              {/* Instagram token health */}
+              {(() => {
+                const h = igHealth[client.id];
+                if (!h || h.status === "loading") {
+                  return <div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-slate-600 animate-pulse" /><span className="text-xs text-slate-500">Verificando token…</span></div>;
+                }
+                const info = IG_STATUS[h.status] ?? IG_STATUS.error;
+                return (
+                  <div className="flex items-center justify-between gap-2">
+                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${info.cls}`}>
+                      <span className="w-1.5 h-1.5 rounded-full bg-current opacity-80" />
+                      {info.label}
+                    </span>
+                    <button
+                      onClick={() => checkIgHealth(client.id)}
+                      className="text-xs text-slate-500 hover:text-slate-300 transition"
+                      title="Verificar novamente"
+                    >
+                      ↻
+                    </button>
+                  </div>
+                );
+              })()}
               <div className="flex gap-2 mt-auto pt-2 border-t border-white/5">
                 <button
                   onClick={() => navigate(`/clients/${client.id}/leads`)}
