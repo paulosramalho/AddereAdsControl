@@ -131,19 +131,17 @@ export function Layout({ children }) {
         {/* Rodapé — usuário + botões */}
         <div className="border-t border-slate-700 p-3 flex flex-col gap-2">
           {/* Card do usuário */}
-          <div className="bg-gradient-to-br from-indigo-600 to-indigo-700 rounded-xl px-3 py-2.5 shadow-lg">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-full bg-white/20 border-2 border-white/30 flex items-center justify-center text-sm font-bold text-white flex-shrink-0 select-none">
-                {(payload?.userName ?? "U").trim().split(/\s+/).map(p => p[0]).slice(0, 2).join("").toUpperCase()}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold text-white truncate leading-tight">
-                  {payload?.userName ?? "—"}
-                </p>
-                <p className="text-[10px] text-indigo-200 font-medium leading-tight">
-                  {roleLabel(payload?.role)}
-                </p>
-              </div>
+          <div className="bg-gradient-to-br from-indigo-600 to-indigo-700 rounded-lg px-2.5 py-1.5 shadow-lg flex items-center gap-2">
+            <div className="w-7 h-7 rounded-full bg-white/20 border border-white/30 flex items-center justify-center text-xs font-bold text-white flex-shrink-0 select-none">
+              {(payload?.userName ?? "U").trim().split(/\s+/).map(p => p[0]).slice(0, 2).join("").toUpperCase()}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-semibold text-white truncate leading-none">
+                {payload?.userName ?? "—"}
+              </p>
+              <p className="text-[10px] text-indigo-200 leading-tight">
+                {roleLabel(payload?.role)}
+              </p>
             </div>
           </div>
 
