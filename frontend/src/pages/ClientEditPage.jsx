@@ -71,6 +71,7 @@ export default function ClientEditPage() {
         status: c.status ?? "TRIAL",
         maxAdmins: c.maxAdmins !== null && c.maxAdmins !== undefined ? String(c.maxAdmins) : "",
         maxViewers: c.maxViewers !== null && c.maxViewers !== undefined ? String(c.maxViewers) : "",
+        plan: c.plan ?? "ESSENCIAL",
       });
       setCredentials(creds);
     } catch {
@@ -89,6 +90,7 @@ export default function ClientEditPage() {
         keywords: form.keywords ? form.keywords.split(",").map((k) => k.trim()).filter(Boolean) : [],
         maxAdmins: form.maxAdmins !== "" ? parseInt(form.maxAdmins, 10) : null,
         maxViewers: form.maxViewers !== "" ? parseInt(form.maxViewers, 10) : null,
+        plan: form.plan,
       };
       const res = await api.put(`/clients/${clientId}`, payload);
       if (res.ok) {
@@ -257,17 +259,32 @@ export default function ClientEditPage() {
           {field("Fuso horário", "timezone", { placeholder: "America/Belem" })}
         </div>
         {field("Keywords (separadas por vírgula)", "keywords", { placeholder: "ex: receitas, emagrecimento, saúde" })}
-        <div>
-          <label className="block text-xs text-slate-400 mb-1">Status</label>
-          <select
-            value={form.status ?? "TRIAL"}
-            onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))}
-            className="bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500"
-          >
-            <option value="TRIAL">Trial</option>
-            <option value="ACTIVE">Ativo</option>
-            <option value="SUSPENDED">Suspenso</option>
-          </select>
+        <div className="flex gap-4">
+          <div>
+            <label className="block text-xs text-slate-400 mb-1">Status</label>
+            <select
+              value={form.status ?? "TRIAL"}
+              onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))}
+              className="bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500"
+            >
+              <option value="TRIAL">Trial</option>
+              <option value="ACTIVE">Ativo</option>
+              <option value="SUSPENDED">Suspenso</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs text-slate-400 mb-1">Plano</label>
+            <select
+              value={form.plan ?? "ESSENCIAL"}
+              onChange={(e) => setForm((f) => ({ ...f, plan: e.target.value }))}
+              className="bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500"
+            >
+              <option value="ESSENCIAL">Essencial — R$197/mês</option>
+              <option value="PROFISSIONAL">Profissional — R$397/mês</option>
+              <option value="COMPLETO">Completo — R$697/mês</option>
+              <option value="AGENCIA">Agência — R$297/cliente</option>
+            </select>
+          </div>
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>

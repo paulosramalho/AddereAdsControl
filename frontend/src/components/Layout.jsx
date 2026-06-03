@@ -1,20 +1,21 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Users, BarChart2, FileText, TrendingUp, UserCog, Building2, Bot, LogOut, User, Settings } from "lucide-react";
+import { LayoutDashboard, Users, BarChart2, FileText, TrendingUp, UserCog, Building2, Bot, LogOut, User, Settings, Lock } from "lucide-react";
 import { clearToken, decodePayload, getToken, isLocked, lockScreen, unlockScreen } from "../lib/auth.js";
 import { api } from "../lib/api.js";
+import { useToast } from "./Toast.jsx";
 import LockScreen from "./LockScreen.jsx";
 
 const NAV = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/leads", label: "Leads", icon: Users, hideForSuper: true },
-  { to: "/campaigns", label: "Campanhas", icon: BarChart2, hideForSuper: true },
-  { to: "/content", label: "Conteúdo", icon: FileText, hideForSuper: true },
-  { to: "/weekly", label: "Relatórios", icon: TrendingUp, hideForSuper: true },
-  { to: "/team", label: "Equipe", icon: UserCog, hideForSuper: true, adminOnly: true },
+  { to: "/campaigns", label: "Campanhas", icon: BarChart2, hideForSuper: true, feature: "campaigns", minPlan: "Profissional" },
+  { to: "/content", label: "Conteúdo", icon: FileText, hideForSuper: true, feature: "suggestions", minPlan: "Profissional" },
+  { to: "/weekly", label: "Relatórios", icon: TrendingUp, hideForSuper: true, feature: "reports", minPlan: "Profissional" },
+  { to: "/team", label: "Equipe", icon: UserCog, hideForSuper: true, adminOnly: true, feature: "team", minPlan: "Profissional" },
   { to: "/clients", label: "Clientes", icon: Building2, superOnly: true },
   { to: "/agents", label: "Agentes", icon: Bot, superOnly: true },
-  { to: "/settings", label: "Configurações", icon: Settings, hideForSuper: true },
+  { to: "/settings", label: "Configurações", icon: Settings, hideForSuper: true, feature: "settings", minPlan: "Completo" },
   { to: "/profile", label: "Meu Perfil", icon: User },
 ];
 
@@ -42,14 +43,28 @@ function roleLabel(role) {
   return "Usuário";
 }
 
+const PLAN_FEATURES = {
+  ESSENCIAL:    ["dashboard", "leads"],
+  PROFISSIONAL: ["dashboard", "leads", "campaigns", "posts", "suggestions", "calendar", "reports", "team"],
+  COMPLETO:     ["dashboard", "leads", "campaigns", "posts", "suggestions", "calendar", "reports", "team", "publish", "boost", "settings"],
+  AGENCIA:      ["dashboard", "leads", "campaigns", "posts", "suggestions", "calendar", "reports", "team", "publish", "boost", "settings"],
+};
+
+function planHasFeature(plan, feature) {
+  if (!plan || !feature) return true;
+  return (PLAN_FEATURES[plan] ?? PLAN_FEATURES.ESSENCIAL).includes(feature);
+}
+
 export function Layout({ children }) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const payload = decodePayload(getToken());
   const isSuper = payload?.role === "SUPER_ADMIN";
   const isAdmin = payload?.role === "ADMIN";
+  const clientPlan = payload?.clientPlan ?? null;
   const clock = useBRTClock();
   const [locked, setLocked] = useState(isLocked);
+  const { addToast } = useToast();
 
   async function logout() {
     await api.post("/auth/logout", {}).catch(() => {});
@@ -110,6 +125,22 @@ export function Layout({ children }) {
           {links.map((n) => {
             const Icon = n.icon;
             const active = pathname.startsWith(n.to);
+            const gated = !planHasFeature(clientPlan, n.feature);
+
+            if (gated) {
+              return (
+                <button
+                  key={n.to}
+                  onClick={() => addToast(`Plano ${n.minPlan ?? "Profissional"} ou superior necessário`, "warning")}
+                  className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-slate-600 w-full text-left cursor-not-allowed"
+                >
+                  {Icon && <Icon size={15} className="flex-shrink-0" />}
+                  {n.label}
+                  <Lock size={11} className="ml-auto flex-shrink-0 text-slate-600" />
+                </button>
+              );
+            }
+
             return (
               <Link
                 key={n.to}

@@ -20,6 +20,7 @@ const clientSchema = z.object({
   timezone: z.string().optional(),
   maxAdmins: z.number().int().min(0).optional().nullable(),
   maxViewers: z.number().int().min(0).optional().nullable(),
+  plan: z.enum(["ESSENCIAL", "PROFISSIONAL", "COMPLETO", "AGENCIA"]).optional(),
 });
 
 router.get("/", async (_req, res) => {
