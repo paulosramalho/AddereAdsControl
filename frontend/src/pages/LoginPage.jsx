@@ -7,6 +7,7 @@ import { useToast } from "../components/Toast.jsx";
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const toast = useToast();
@@ -15,7 +16,7 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await api.post("/auth/login", { email, password });
+      const res = await api.post("/auth/login", { email, password, rememberMe });
       const data = await res.json();
       if (!res.ok) {
         toast(data.message ?? "Credenciais inválidas", "error");
@@ -59,6 +60,15 @@ export default function LoginPage() {
               placeholder="••••••••"
             />
           </div>
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+              className="w-4 h-4 rounded border-slate-600 bg-slate-700 text-indigo-500 focus:ring-indigo-500"
+            />
+            <span className="text-xs text-slate-400">Manter conectado por 30 dias</span>
+          </label>
           <button
             type="submit"
             disabled={loading}

@@ -12,13 +12,15 @@ const router = Router();
 const REFRESH_DAYS = 7;
 const ACCESS_MINUTES = 15;
 
-const COOKIE_OPTS = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-  maxAge: REFRESH_DAYS * 24 * 60 * 60 * 1000,
-  path: "/",
-};
+function cookieOpts(days) {
+  return {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    maxAge: days * 24 * 60 * 60 * 1000,
+    path: "/",
+  };
+}
 
 function hashToken(raw) {
   return createHash("sha256").update(raw).digest("hex");
@@ -32,10 +34,10 @@ function issueAccessToken(user) {
   );
 }
 
-async function issueRefreshToken(userId) {
+async function issueRefreshToken(userId, days = REFRESH_DAYS) {
   const raw = randomBytes(40).toString("hex");
   const tokenHash = hashToken(raw);
-  const expiresAt = new Date(Date.now() + REFRESH_DAYS * 24 * 60 * 60 * 1000);
+  const expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
   await prisma.refreshToken.create({ data: { userId, tokenHash, expiresAt } });
   return raw;
 }
@@ -43,10 +45,11 @@ async function issueRefreshToken(userId) {
 const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(1),
+  rememberMe: z.boolean().optional().default(false),
 });
 
 router.post("/login", authLimiter, validateBody(loginSchema), async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, rememberMe } = req.body;
   const user = await prisma.user.findUnique({ where: { email }, include: { client: true } });
   if (!user || !user.active) {
     return res.status(401).json({ message: "Credenciais inválidas" });
@@ -55,9 +58,10 @@ router.post("/login", authLimiter, validateBody(loginSchema), async (req, res) =
   if (!valid) {
     return res.status(401).json({ message: "Credenciais inválidas" });
   }
+  const cookieDays = rememberMe ? 30 : 1;
   const token = issueAccessToken(user);
-  const refreshRaw = await issueRefreshToken(user.id);
-  res.cookie("refresh_token", refreshRaw, COOKIE_OPTS);
+  const refreshRaw = await issueRefreshToken(user.id, cookieDays);
+  res.cookie("refresh_token", refreshRaw, cookieOpts(cookieDays));
   res.json({
     ok: true,
     token,
@@ -87,7 +91,7 @@ router.post("/refresh", async (req, res) => {
 
   const token = issueAccessToken(stored.user);
   const refreshRaw = await issueRefreshToken(stored.user.id);
-  res.cookie("refresh_token", refreshRaw, COOKIE_OPTS);
+  res.cookie("refresh_token", refreshRaw, cookieOpts(REFRESH_DAYS));
   res.json({ ok: true, token });
 });
 
@@ -99,7 +103,7 @@ router.post("/logout", async (req, res) => {
       .updateMany({ where: { tokenHash, revokedAt: null }, data: { revokedAt: new Date() } })
       .catch(() => {});
   }
-  res.clearCookie("refresh_token", { ...COOKIE_OPTS, maxAge: 0 });
+  res.clearCookie("refresh_token", { ...cookieOpts(0), maxAge: 0 });
   res.json({ ok: true });
 });
 

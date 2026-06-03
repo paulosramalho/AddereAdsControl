@@ -1,16 +1,17 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { LayoutDashboard, Users, BarChart2, FileText, TrendingUp, UserCog, Building2, Bot, LogOut } from "lucide-react";
 import { clearToken, decodePayload, getToken } from "../lib/auth.js";
 
 const NAV = [
-  { to: "/dashboard", label: "Dashboard" },
-  { to: "/leads", label: "Leads", hideForSuper: true },
-  { to: "/campaigns", label: "Campanhas", hideForSuper: true },
-  { to: "/content", label: "Conteúdo", hideForSuper: true },
-  { to: "/weekly", label: "Relatórios", hideForSuper: true },
-  { to: "/team", label: "Equipe", hideForSuper: true, adminOnly: true },
-  { to: "/clients", label: "Clientes", superOnly: true },
-  { to: "/agents", label: "Agentes", superOnly: true },
+  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/leads", label: "Leads", icon: Users, hideForSuper: true },
+  { to: "/campaigns", label: "Campanhas", icon: BarChart2, hideForSuper: true },
+  { to: "/content", label: "Conteúdo", icon: FileText, hideForSuper: true },
+  { to: "/weekly", label: "Relatórios", icon: TrendingUp, hideForSuper: true },
+  { to: "/team", label: "Equipe", icon: UserCog, hideForSuper: true, adminOnly: true },
+  { to: "/clients", label: "Clientes", icon: Building2, superOnly: true },
+  { to: "/agents", label: "Agentes", icon: Bot, superOnly: true },
 ];
 
 function useBRTClock() {
@@ -79,19 +80,24 @@ export function Layout({ children }) {
 
         {/* Navegação */}
         <nav className="flex-1 px-3 py-4 flex flex-col gap-1 overflow-y-auto">
-          {links.map((n) => (
-            <Link
-              key={n.to}
-              to={n.to}
-              className={`px-3 py-2 rounded-lg text-sm transition ${
-                pathname.startsWith(n.to)
-                  ? "bg-slate-700 text-white font-medium"
-                  : "text-slate-400 hover:bg-slate-700/50 hover:text-white"
-              }`}
-            >
-              {n.label}
-            </Link>
-          ))}
+          {links.map((n) => {
+            const Icon = n.icon;
+            const active = pathname.startsWith(n.to);
+            return (
+              <Link
+                key={n.to}
+                to={n.to}
+                className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition ${
+                  active
+                    ? "bg-slate-700 text-white font-medium"
+                    : "text-slate-400 hover:bg-slate-700/50 hover:text-white"
+                }`}
+              >
+                {Icon && <Icon size={15} className="flex-shrink-0" />}
+                {n.label}
+              </Link>
+            );
+          })}
         </nav>
 
         {/* Rodapé — usuário + botão Sair */}
@@ -104,8 +110,9 @@ export function Layout({ children }) {
           </div>
           <button
             onClick={logout}
-            className="w-full px-3 py-2 rounded-lg text-sm text-slate-400 hover:bg-red-900/30 hover:text-red-400 transition text-left"
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-slate-400 hover:bg-red-900/30 hover:text-red-400 transition"
           >
+            <LogOut size={15} className="flex-shrink-0" />
             Sair
           </button>
         </div>

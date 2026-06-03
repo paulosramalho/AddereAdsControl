@@ -1,7 +1,9 @@
+import { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { ToastProvider } from "./components/Toast.jsx";
 import { Layout } from "./components/Layout.jsx";
 import { isLoggedIn } from "./lib/auth.js";
+import { silentRefresh } from "./lib/api.js";
 import LoginPage from "./pages/LoginPage.jsx";
 import DashboardPage from "./pages/DashboardPage.jsx";
 import LeadsPage from "./pages/LeadsPage.jsx";
@@ -16,7 +18,15 @@ import TeamPage from "./pages/TeamPage.jsx";
 
 function Guard({ children }) {
   const location = useLocation();
-  if (!isLoggedIn()) return <Navigate to="/login" state={{ from: location }} replace />;
+  const [status, setStatus] = useState(() => (isLoggedIn() ? "ok" : "checking"));
+
+  useEffect(() => {
+    if (status !== "checking") return;
+    silentRefresh().then((ok) => setStatus(ok ? "ok" : "fail"));
+  }, [status]);
+
+  if (status === "checking") return null;
+  if (status === "fail") return <Navigate to="/login" state={{ from: location }} replace />;
   return children;
 }
 
