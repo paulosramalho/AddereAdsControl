@@ -1,11 +1,11 @@
 import { Router } from "express";
 import prisma from "../lib/prisma.js";
-import { requireAuth, requireSameClient, requireAdminOrSuper } from "../middleware/auth.js";
+import { requireAuth, requireSameClient, requireAdminOrSuper, requireFeature } from "../middleware/auth.js";
 import { runJob } from "../jobs/engine/runner.js";
 import { analyzeInstagram } from "../jobs/instagram/analysis.js";
 
 const router = Router({ mergeParams: true });
-router.use(requireAuth, requireSameClient);
+router.use(requireAuth, requireSameClient, requireFeature("posts"));
 
 router.get("/", async (req, res) => {
   try {

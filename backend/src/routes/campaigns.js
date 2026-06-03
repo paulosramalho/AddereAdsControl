@@ -1,9 +1,9 @@
 import { Router } from "express";
 import prisma from "../lib/prisma.js";
-import { requireAuth, requireSameClient } from "../middleware/auth.js";
+import { requireAuth, requireSameClient, requireFeature } from "../middleware/auth.js";
 
 const router = Router({ mergeParams: true });
-router.use(requireAuth, requireSameClient);
+router.use(requireAuth, requireSameClient, requireFeature("campaigns"));
 
 router.get("/", async (req, res) => {
   try {

@@ -2,11 +2,11 @@ import { Router } from "express";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import prisma from "../lib/prisma.js";
-import { requireAuth, requireAdminOrSuper, requireSameClient } from "../middleware/auth.js";
+import { requireAuth, requireAdminOrSuper, requireSameClient, requireFeature } from "../middleware/auth.js";
 import { validateBody } from "../middleware/validate.js";
 
 const router = Router({ mergeParams: true });
-router.use(requireAuth, requireAdminOrSuper, requireSameClient);
+router.use(requireAuth, requireAdminOrSuper, requireSameClient, requireFeature("team"));
 
 router.get("/", async (req, res) => {
   const { clientId } = req.params;

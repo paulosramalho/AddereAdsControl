@@ -2,11 +2,11 @@ import { Router } from "express";
 import { z } from "zod";
 import prisma from "../lib/prisma.js";
 import { encrypt } from "../lib/crypto.js";
-import { requireAuth, requireSameClient, requireAdminOrSuper } from "../middleware/auth.js";
+import { requireAuth, requireSameClient, requireAdminOrSuper, requireFeature } from "../middleware/auth.js";
 import { validateBody } from "../middleware/validate.js";
 
 const router = Router({ mergeParams: true });
-router.use(requireAuth, requireSameClient, requireAdminOrSuper);
+router.use(requireAuth, requireSameClient, requireAdminOrSuper, requireFeature("settings"));
 
 const ALLOWED_PLATFORMS = ["INSTAGRAM", "META_ADS", "GOOGLE_ADS", "ANTHROPIC", "RESEND"];
 

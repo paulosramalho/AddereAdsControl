@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import prisma from "../lib/prisma.js";
-import { requireAuth } from "../middleware/auth.js";
+import { requireAuth, requireFeature } from "../middleware/auth.js";
 import { validateBody } from "../middleware/validate.js";
 
 const router = Router();
@@ -12,7 +12,7 @@ function clientWhere(req) {
   return cid ? { clientId: cid } : {};
 }
 
-router.get("/content", async (req, res) => {
+router.get("/content", requireFeature("suggestions"), async (req, res) => {
   try {
     const { status } = req.query;
     const where = { ...clientWhere(req), ...(status ? { status } : {}) };
@@ -29,6 +29,7 @@ router.get("/content", async (req, res) => {
 
 router.patch(
   "/content/:id/status",
+  requireFeature("suggestions"),
   validateBody(z.object({ status: z.enum(["PENDING", "APPROVED", "REJECTED", "DONE"]) })),
   async (req, res) => {
     try {
@@ -46,7 +47,7 @@ router.patch(
   }
 );
 
-router.get("/boost", async (req, res) => {
+router.get("/boost", requireFeature("boost"), async (req, res) => {
   try {
     const { status } = req.query;
     const where = { ...clientWhere(req), ...(status ? { status } : {}) };
@@ -63,6 +64,7 @@ router.get("/boost", async (req, res) => {
 
 router.patch(
   "/boost/:id/status",
+  requireFeature("boost"),
   validateBody(z.object({ status: z.enum(["PENDING", "APPROVED", "REJECTED", "DONE"]) })),
   async (req, res) => {
     try {

@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import { planHasFeature } from "../lib/planFeatures.js";
 
 export function requireAuth(req, res, next) {
   const header = req.headers.authorization;
@@ -8,11 +9,18 @@ export function requireAuth(req, res, next) {
   const token = header.slice(7);
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = { id: payload.sub, clientId: payload.clientId ?? null, role: payload.role };
+    req.user = { id: payload.sub, clientId: payload.clientId ?? null, role: payload.role, clientPlan: payload.clientPlan ?? null };
     next();
   } catch {
     res.status(401).json({ message: "Token inválido ou expirado" });
   }
+}
+
+export function requireFeature(feature) {
+  return (req, res, next) => {
+    if (planHasFeature(req.user?.clientPlan, feature)) return next();
+    res.status(403).json({ message: "Recurso não disponível no plano atual", feature, plan: req.user?.clientPlan });
+  };
 }
 
 export function requireRole(...roles) {

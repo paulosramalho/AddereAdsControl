@@ -1,9 +1,9 @@
 import { Router } from "express";
 import prisma from "../lib/prisma.js";
-import { requireAuth } from "../middleware/auth.js";
+import { requireAuth, requireFeature } from "../middleware/auth.js";
 
 const router = Router();
-router.use(requireAuth);
+router.use(requireAuth, requireFeature("reports"));
 
 function clientWhere(req) {
   const cid = req.user.clientId ?? req.query.clientId ?? null;

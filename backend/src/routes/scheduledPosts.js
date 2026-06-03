@@ -1,11 +1,11 @@
 import { Router } from "express";
 import { z } from "zod";
 import prisma from "../lib/prisma.js";
-import { requireAuth, requireSameClient, requireAdminOrSuper } from "../middleware/auth.js";
+import { requireAuth, requireSameClient, requireAdminOrSuper, requireFeature } from "../middleware/auth.js";
 import { validateBody } from "../middleware/validate.js";
 
 const router = Router({ mergeParams: true });
-router.use(requireAuth, requireSameClient);
+router.use(requireAuth, requireSameClient, requireFeature("calendar"));
 
 router.get("/", async (req, res) => {
   const { clientId } = req.params;

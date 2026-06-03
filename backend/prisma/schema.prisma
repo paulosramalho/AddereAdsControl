@@ -92,6 +92,13 @@ enum JobStatus {
   FAILED
 }
 
+enum ClientPlan {
+  ESSENCIAL
+  PROFISSIONAL
+  COMPLETO
+  AGENCIA
+}
+
 model Client {
   id             String       @id @default(cuid())
   slug           String       @unique
@@ -105,6 +112,7 @@ model Client {
   logoUrl        String?
   rssSources     Json?
   timezone       String       @default("America/Belem")
+  plan           ClientPlan   @default(ESSENCIAL)
   maxAdmins      Int?
   maxViewers     Int?
   createdAt      DateTime     @default(now())
