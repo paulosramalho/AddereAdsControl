@@ -128,7 +128,7 @@ function SuggestionsTab() {
         clientId={clientId}
         initialValues={scheduleModal.initialValues}
         onClose={() => setScheduleModal({ open: false, initialValues: null })}
-        onSave={() => setScheduleModal({ open: false, initialValues: null })}
+        onSave={() => {}}
       />
 
       {loading ? (
@@ -377,7 +377,6 @@ function CalendarTab() {
       }
       return [...prev, savedPost];
     });
-    setShowModal(false);
   }
 
   return (

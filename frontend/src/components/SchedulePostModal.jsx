@@ -268,7 +268,8 @@ export default function SchedulePostModal({ open, post, defaultDate, clientId, o
       const d = await res.json();
       if (res.ok) {
         addToast(post ? "Post atualizado" : "Post agendado", "success");
-        onSave(d.post);
+        onSave?.(d.post);
+        onClose();
       } else {
         addToast(d.message ?? "Erro ao salvar", "error");
       }
@@ -284,7 +285,8 @@ export default function SchedulePostModal({ open, post, defaultDate, clientId, o
       const res = await api.del(`/clients/${clientId}/scheduled-posts/${post.id}`);
       if (res.ok) {
         addToast("Agendamento cancelado", "info");
-        onSave({ ...post, status: "CANCELLED" });
+        onSave?.({ ...post, status: "CANCELLED" });
+        onClose();
       } else {
         const d = await res.json();
         addToast(d.message ?? "Erro ao cancelar", "error");
