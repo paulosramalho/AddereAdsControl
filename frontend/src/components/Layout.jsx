@@ -79,19 +79,23 @@ export function Layout({ children }) {
 
         {/* Header — logo / cliente */}
         {isSuper ? (
-          <div className="px-4 py-4 border-b border-slate-700 flex flex-col items-center gap-1.5">
-            <img src="/logo-addere.png" alt="Addere" className="h-9 object-contain" />
+          <div className="px-4 py-4 border-b border-slate-700 flex flex-col items-center gap-2">
+            <div className="bg-white rounded-xl px-4 py-2 flex items-center justify-center shadow-sm">
+              <img src="/logo-addere.png" alt="Addere" className="h-10 object-contain" />
+            </div>
             <span className="font-semibold text-sm tracking-tight text-white">Addere Ads Control</span>
             <span className="text-[10px] text-amber-400 font-medium">Super Admin</span>
           </div>
         ) : (
-          <div className="px-6 py-5 border-b border-slate-700">
+          <div className="px-4 py-4 border-b border-slate-700">
             <span className="font-bold text-base tracking-tight leading-tight block">
               {payload?.clientName ?? "—"}
             </span>
-            <span className="flex items-center gap-1.5 text-xs text-slate-500 italic mt-1">
-              <img src="/logo-addere.png" alt="Addere" className="h-3 object-contain opacity-40" />
+            <span className="flex items-center justify-end gap-1.5 text-xs text-slate-500 italic mt-1.5">
               By Addere Ads Control
+              <div className="bg-white rounded px-1 py-0.5 flex items-center">
+                <img src="/logo-addere.png" alt="Addere" className="h-5 object-contain" />
+              </div>
             </span>
           </div>
         )}
