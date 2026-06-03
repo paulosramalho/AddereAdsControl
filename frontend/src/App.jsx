@@ -18,7 +18,11 @@ import TeamPage from "./pages/TeamPage.jsx";
 
 function Guard({ children }) {
   const location = useLocation();
-  const [status, setStatus] = useState(() => (isLocked() || !isLoggedIn() ? "checking" : "ok"));
+  const [status, setStatus] = useState(() => {
+    if (isLocked()) return "locked";
+    if (!isLoggedIn()) return "checking";
+    return "ok";
+  });
 
   useEffect(() => {
     if (status !== "checking") return;
@@ -26,7 +30,7 @@ function Guard({ children }) {
   }, [status]);
 
   if (status === "checking") return null;
-  if (status === "fail") return <Navigate to="/login" state={{ from: location, locked: isLocked() }} replace />;
+  if (status === "fail") return <Navigate to="/login" state={{ from: location }} replace />;
   return children;
 }
 

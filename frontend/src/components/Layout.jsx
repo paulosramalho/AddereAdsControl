@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { LayoutDashboard, Users, BarChart2, FileText, TrendingUp, UserCog, Building2, Bot, LogOut } from "lucide-react";
-import { clearToken, decodePayload, getToken, lockScreen } from "../lib/auth.js";
+import { clearToken, decodePayload, getToken, isLocked, lockScreen, unlockScreen } from "../lib/auth.js";
 import { api } from "../lib/api.js";
+import LockScreen from "./LockScreen.jsx";
 
 const NAV = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -46,6 +47,7 @@ export function Layout({ children }) {
   const isSuper = payload?.role === "SUPER_ADMIN";
   const isAdmin = payload?.role === "ADMIN";
   const clock = useBRTClock();
+  const [locked, setLocked] = useState(isLocked);
 
   async function logout() {
     await api.post("/auth/logout", {}).catch(() => {});
@@ -54,8 +56,13 @@ export function Layout({ children }) {
   }
 
   function lock() {
-    lockScreen();
-    navigate("/login", { state: { locked: true } });
+    lockScreen({ email: payload?.userEmail, name: payload?.userName });
+    setLocked(true);
+  }
+
+  function handleUnlock() {
+    unlockScreen();
+    setLocked(false);
   }
 
   const links = NAV.filter((n) => {
@@ -67,24 +74,27 @@ export function Layout({ children }) {
 
   return (
     <div className="flex h-screen bg-slate-900 text-white">
+      {locked && <LockScreen onUnlock={handleUnlock} />}
       <aside className="w-56 flex-shrink-0 bg-slate-800 border-r border-slate-700 flex flex-col">
 
         {/* Header — logo / cliente */}
-        <div className="px-6 py-5 border-b border-slate-700">
-          {isSuper ? (
-            <>
-              <span className="font-bold text-base tracking-tight">Addere Ads Control</span>
-              <span className="block text-xs text-amber-400 mt-0.5">Super Admin</span>
-            </>
-          ) : (
-            <>
-              <span className="font-bold text-base tracking-tight leading-tight block">
-                {payload?.clientName ?? "—"}
-              </span>
-              <span className="block text-xs text-slate-500 italic mt-0.5 text-right">By Addere Ads Control</span>
-            </>
-          )}
-        </div>
+        {isSuper ? (
+          <div className="px-4 py-4 border-b border-slate-700 flex flex-col items-center gap-1.5">
+            <img src="/logo-addere.png" alt="Addere" className="h-9 object-contain" />
+            <span className="font-semibold text-sm tracking-tight text-white">Addere Ads Control</span>
+            <span className="text-[10px] text-amber-400 font-medium">Super Admin</span>
+          </div>
+        ) : (
+          <div className="px-6 py-5 border-b border-slate-700">
+            <span className="font-bold text-base tracking-tight leading-tight block">
+              {payload?.clientName ?? "—"}
+            </span>
+            <span className="flex items-center gap-1.5 text-xs text-slate-500 italic mt-1">
+              <img src="/logo-addere.png" alt="Addere" className="h-3 object-contain opacity-40" />
+              By Addere Ads Control
+            </span>
+          </div>
+        )}
 
         {/* Data e hora BRT */}
         <div className="px-6 py-2.5 border-b border-slate-700/60">
