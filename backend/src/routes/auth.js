@@ -26,7 +26,7 @@ function hashToken(raw) {
 
 function issueAccessToken(user) {
   return jwt.sign(
-    { sub: user.id, clientId: user.clientId, role: user.role, clientName: user.client?.name ?? null },
+    { sub: user.id, clientId: user.clientId, role: user.role, clientName: user.client?.name ?? null, userName: user.name, userEmail: user.email },
     process.env.JWT_SECRET,
     { expiresIn: `${ACCESS_MINUTES}m` }
   );

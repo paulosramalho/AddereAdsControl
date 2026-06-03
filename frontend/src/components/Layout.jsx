@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { clearToken, decodePayload, getToken } from "../lib/auth.js";
 
@@ -12,12 +13,31 @@ const NAV = [
   { to: "/agents", label: "Agentes", superOnly: true },
 ];
 
+function useBRTClock() {
+  const [display, setDisplay] = useState("");
+
+  useEffect(() => {
+    function tick() {
+      const now = new Date();
+      const date = now.toLocaleDateString("pt-BR", { timeZone: "America/Belem", day: "2-digit", month: "2-digit", year: "numeric" });
+      const time = now.toLocaleTimeString("pt-BR", { timeZone: "America/Belem", hour: "2-digit", minute: "2-digit" });
+      setDisplay(`${date}  ${time}`);
+    }
+    tick();
+    const id = setInterval(tick, 10000);
+    return () => clearInterval(id);
+  }, []);
+
+  return display;
+}
+
 export function Layout({ children }) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const payload = decodePayload(getToken());
   const isSuper = payload?.role === "SUPER_ADMIN";
   const isAdmin = payload?.role === "ADMIN";
+  const clock = useBRTClock();
 
   function logout() {
     clearToken();
@@ -34,6 +54,8 @@ export function Layout({ children }) {
   return (
     <div className="flex h-screen bg-slate-900 text-white">
       <aside className="w-56 flex-shrink-0 bg-slate-800 border-r border-slate-700 flex flex-col">
+
+        {/* Header — logo / cliente */}
         <div className="px-6 py-5 border-b border-slate-700">
           {isSuper ? (
             <>
@@ -49,7 +71,14 @@ export function Layout({ children }) {
             </>
           )}
         </div>
-        <nav className="flex-1 px-3 py-4 flex flex-col gap-1">
+
+        {/* Data e hora BRT */}
+        <div className="px-6 py-2.5 border-b border-slate-700/60">
+          <span className="text-xs text-slate-500 tabular-nums">{clock}</span>
+        </div>
+
+        {/* Navegação */}
+        <nav className="flex-1 px-3 py-4 flex flex-col gap-1 overflow-y-auto">
           {links.map((n) => (
             <Link
               key={n.to}
@@ -64,15 +93,24 @@ export function Layout({ children }) {
             </Link>
           ))}
         </nav>
-        <div className="p-3 border-t border-slate-700">
+
+        {/* Rodapé — usuário + botão Sair */}
+        <div className="border-t border-slate-700 p-3 flex flex-col gap-1">
+          <div className="px-3 py-2">
+            <p className="text-xs font-medium text-slate-300 truncate">
+              {payload?.userName ?? payload?.userEmail ?? "—"}
+            </p>
+            <p className="text-xs text-slate-500 truncate">{payload?.userEmail ?? ""}</p>
+          </div>
           <button
             onClick={logout}
-            className="w-full px-3 py-2 rounded-lg text-sm text-slate-400 hover:bg-slate-700/50 hover:text-white transition text-left"
+            className="w-full px-3 py-2 rounded-lg text-sm text-slate-400 hover:bg-red-900/30 hover:text-red-400 transition text-left"
           >
             Sair
           </button>
         </div>
       </aside>
+
       <main className="flex-1 overflow-y-auto">{children}</main>
     </div>
   );
