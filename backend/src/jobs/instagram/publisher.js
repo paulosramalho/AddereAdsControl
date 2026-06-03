@@ -26,7 +26,7 @@ async function createMediaContainer(userId, accessToken, post) {
       });
       if (!r.ok) {
         const txt = await r.text();
-        throw new Error(`Carousel item erro ${r.status}: ${txt.slice(0, 200)}`);
+        throw new Error(`Carrossel item erro ${r.status}: ${txt.slice(0, 200)}`);
       }
       const d = await r.json();
       childIds.push(d.id);
