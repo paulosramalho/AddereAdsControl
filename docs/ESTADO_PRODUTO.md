@@ -36,9 +36,13 @@ IA       (Anthropic Claude Haiku 4.5)
 
 **Arquivos:** `routes/dashboard.js`, `DashboardPage.jsx`
 
-- 3 KPIs: total de leads · dias de campanha · sugestões de conteúdo
-- Tabela de leads recentes com status colorido
-- Endpoint: `GET /dashboard/summary`
+- KPIs: total de leads · dias de campanha · sugestões de conteúdo · leads do mês · gasto do mês
+- Gráfico de linha: gasto diário dos últimos 30 dias (Recharts)
+- Mini-ranking: top 3 campanhas por conversão no mês
+- Card de meta mensal: leadsGoal vs real · budgetCents vs gasto real (barra de progresso)
+- Formulário de meta mensal (ADMIN/SUPER_ADMIN) — cria/edita `MonthlyGoal`
+- Seletor de cliente para SUPER_ADMIN — visualizar dashboard de qualquer tenant via `?clientId=`
+- Endpoint: `GET /dashboard/summary[?clientId=]`
 
 ---
 
@@ -67,24 +71,42 @@ IA       (Anthropic Claude Haiku 4.5)
 
 ---
 
-### 5. Conteúdo — Sugestões e Boost
+### 5. Conteúdo — página em abas
 
-**Arquivos:** `routes/suggestions.js`, `jobs/content/trending.js`, `jobs/content/suggestions.js`, `jobs/content/boost.js`, `ContentPage.jsx`
+**Arquivos:** `routes/suggestions.js`, `routes/posts.js`, `jobs/content/trending.js`, `jobs/content/suggestions.js`, `jobs/content/boost.js`, `ContentPage.jsx`, `CalendarGrid.jsx`
 
-Página única com duas seções:
+Página `/content` organizada em 4 abas:
 
-#### 5a. Sugestões de Pauta (`ContentSuggestion`)
+#### Aba Sugestões (`ContentSuggestion`)
 
-- Job `trending-suggestions` varre 7 fontes em paralelo → Claude Haiku → 7 sugestões
-- Fontes: Conjur · JOTA · Migalhas · YouTube BR · Google Trends BR · Reddit BR · Instituições BR (STJ/Câmara/Senado)
-- Cada sugestão tem: título · hook · formato (REEL/CAROUSEL/POST/STORIES) · fontes · reasoning
-- Workflow de aprovação: `PENDING → APPROVED → DONE | REJECTED`
-- Botão "Gerar novas" dispara o job manualmente
+- Job `trending-suggestions` varre fontes em paralelo → Claude Haiku → 7 sugestões
+- Fontes por nicho: RSS (Conjur/JOTA/Migalhas + 17 nichos), Reddit, YouTube BR
+- `trendingEngine.js`: personaliza por `client.niche`, `client.keywords`, `client.targetAudience`, `client.contentTone`
+- `NICHE_DEFAULTS` cobre 17 nichos: direito, nutricao, arquitetura, financas, contabilidade, saude, psicologia, tecnologia, marketing, educacao, fitness, imoveis, beleza, gastronomia, moda, veterinaria, odontologia
+- Workflow: `PENDING → APPROVED → DONE | REJECTED`
+- Botão "Gerar novas" dispara job manualmente
 
-#### 5b. Sugestões de Boost (`BoostSuggestion`)
+#### Aba Posts (`InstagramPost` + `PostAnalysis`)
 
-- Job `boost-suggestions` cruza posts orgânicos com tração + análise INVEST + saldo mensal + CPL histórico
-- Sugere valor de budget + leads estimados por post
+- Tabela de posts coletados via `instagram-collection`: thumbnail · caption · tipo · likes · comentários · reach
+- Badge IA: `INVEST` (score ≥ 7) · `MANTER` · `REDIRECIONAR` · `REMOVER`
+- Expandir linha: strengths, improvements e reasoning do Claude
+- Filtros por tipo de post e por recomendação de análise
+- Botão "Analisar posts" dispara `post-analysis` manualmente
+
+#### Aba Calendário (`ScheduledPost`)
+
+- Calendário mensal (`CalendarGrid.jsx`) — badges de posts agendados por dia
+- Status: `DRAFT · SCHEDULED · PUBLISHING · PUBLISHED · FAILED · CANCELLED`
+- Modal de agendamento: caption · formato · data · hora · mídia (upload R2)
+- Modal de detalhe: ação cancelar/republicar
+- Gate `IG_PUBLISH_ENABLED`: exibe aviso se publicação automática estiver desabilitada
+- Job `publish-scheduled` roda a cada 5 min e publica os posts devidos
+
+#### Aba Impulsionar (`BoostSuggestion`)
+
+- Job `boost-suggestions`: cruza posts com tração + análise INVEST + saldo mensal + CPL histórico
+- Sugere budget e leads estimados por post
 - Mesmo workflow `PENDING → APPROVED → DONE | REJECTED`
 
 ---
@@ -154,89 +176,9 @@ Página única com duas seções:
 
 ---
 
-## À Implementar
+## Status do produto
 
-Funcionalidades presentes no Amanda Ads Control e/ou com modelo de dados já no schema, que agregam valor ao produto.
-
----
-
-### A. Posts Orgânicos — página dedicada
-
-**Prioridade: alta**
-
-O modelo `InstagramPost` e `PostAnalysis` já estão populados pelo job `instagram-collection` + `post-analysis`. Não há página no frontend para visualizá-los.
-
-**O que implementar:**
-- Página `PostsPage.jsx` com tabela de posts: thumbnail (via permalink) · caption truncada · tipo (REEL/CAROUSEL/IMAGE) · likes · comentários · reach · impressões
-- Badge de análise IA: `INVEST` (score ≥ 7) · `MANTER` · `REDIRECIONAR` · `REMOVER`
-- Filtro por tipo e por status de análise
-- Botão "Analisar posts" dispara `post-analysis` manualmente
-- Expandir linha mostra strengths, improvements e reasoning completo
-
-**Dependências:** nenhuma — dados já existem no banco após primeiro job.
-
----
-
-### B. Calendário Editorial
-
-**Prioridade: alta**
-
-O modelo `ScheduledPost` e o job `publish-scheduled` (com gate `IG_PUBLISH_ENABLED`) já existem. Falta a UI.
-
-**O que implementar:**
-- Componente de calendário mensal (`CalendarPage.jsx` ou aba dentro de Conteúdo)
-- Cada dia mostra badges dos posts agendados naquele dia
-- Clique abre modal com: caption · formato · mídia(s) · status · ação (cancelar/republicar)
-- Botão "Agendar post" em sugestões aprovadas → abre `SchedulePostModal` para definir data, hora, mídia
-- Indicador de status: DRAFT · SCHEDULED · PUBLISHING · PUBLISHED · FAILED · CANCELLED
-- Gate: ao tentar publicar, verificar `IG_PUBLISH_ENABLED` — exibir aviso se desabilitado
-
-**Dependências:** upload de mídia (R2/S3 já configurado em `lib/r2.js`) deve estar funcional.
-
----
-
-### C. Reorganização da página de Conteúdo em abas
-
-**Prioridade: média**
-
-A página atual (`ContentPage.jsx`) mistura Sugestões de Pauta + Boost em uma única tela com filtro de status. Conforme o produto cresce (posts orgânicos + calendário), fica sobrecarregada.
-
-**O que implementar:**
-- Navegação por abas dentro da rota `/content`:
-  - **Sugestões** — lista atual de `ContentSuggestion`
-  - **Posts** — posts orgânicos (item A acima)
-  - **Calendário** — calendário editorial (item B acima)
-  - **Impulsionar** — lista atual de `BoostSuggestion`
-- Cada aba preserva o filtro de status independentemente
-
----
-
-### D. Dashboard expandido — gráficos e metas
-
-**Prioridade: média**
-
-O dashboard atual mostra apenas 3 KPIs numéricos. O modelo `MonthlyGoal` existe mas não tem UI.
-
-**O que implementar:**
-- Gráfico de linha: gasto diário de anúncios (últimos 30 dias) — dados já disponíveis em `CampaignDaily`
-- Card de meta mensal: leadsGoal vs leads reais · budgetCents vs gasto real (percentual de atingimento)
-- Formulário de meta mensal (SUPER_ADMIN/ADMIN): criar/editar `MonthlyGoal` para o mês corrente
-- Mini-ranking de campanhas por conversão na home
-
-**Dependências:** biblioteca de gráficos — sugestão: `recharts` (leve, sem dependências pesadas).
-
----
-
-### E. Notificações por e-mail por cliente
-
-**Prioridade: baixa**
-
-O job `instagram-notify` envia e-mail diário, mas com destinatário fixo por cliente (configurado em credencial). Não há UI para o cliente configurar preferências de notificação.
-
-**O que implementar:**
-- Campo de e-mail de notificação no `ClientEditPage` (ou seção de Preferências)
-- Toggle: receber resumo diário · alerta de token expirando · alerta de campanha com custo acima do normal
-- Salvar em `ClientCredential` (platform `RESEND`, key `notify_emails`)
+Todas as fases planejadas foram implementadas. Não há backlog pendente.
 
 ---
 
