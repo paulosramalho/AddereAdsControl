@@ -19,7 +19,7 @@ async function createMediaContainer(userId, accessToken, post) {
         is_carousel_item: "true",
         access_token: accessToken,
       });
-      const r = await fetch(`https://graph.instagram.com/v22.0/${userId}/media`, {
+      const r = await fetch(`https://graph.facebook.com/v22.0/${userId}/media`, {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: params,
@@ -44,7 +44,7 @@ async function createMediaContainer(userId, accessToken, post) {
   }
 
   const params = new URLSearchParams(body);
-  const res = await fetch(`https://graph.instagram.com/v22.0/${userId}/media`, {
+  const res = await fetch(`https://graph.facebook.com/v22.0/${userId}/media`, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: params,
@@ -59,7 +59,7 @@ async function createMediaContainer(userId, accessToken, post) {
 
 async function publishContainer(userId, containerId, accessToken) {
   const params = new URLSearchParams({ creation_id: containerId, access_token: accessToken });
-  const res = await fetch(`https://graph.instagram.com/v22.0/${userId}/media_publish`, {
+  const res = await fetch(`https://graph.facebook.com/v22.0/${userId}/media_publish`, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: params,
@@ -112,7 +112,7 @@ export async function publishScheduledPosts(client) {
 
       if (post.firstComment && igPostId) {
         const params = new URLSearchParams({ message: post.firstComment, access_token: accessToken });
-        await fetch(`https://graph.instagram.com/v22.0/${igPostId}/comments`, {
+        await fetch(`https://graph.facebook.com/v22.0/${igPostId}/comments`, {
           method: "POST",
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
           body: params,

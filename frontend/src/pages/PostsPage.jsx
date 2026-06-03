@@ -44,6 +44,8 @@ export default function PostsPage() {
   const clientId = paramClientId ?? payload?.clientId;
   const canAnalyze = payload?.role === "ADMIN" || payload?.role === "SUPER_ADMIN";
 
+  const safetyTimerRef = useRef(null);
+
   const [posts, setPosts] = useState([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -57,6 +59,10 @@ export default function PostsPage() {
 
   function stopPolling() {
     if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
+  }
+
+  function stopSafetyTimer() {
+    if (safetyTimerRef.current) { clearTimeout(safetyTimerRef.current); safetyTimerRef.current = null; }
   }
 
   async function load(reset = false) {
@@ -86,12 +92,13 @@ export default function PostsPage() {
     load(true);
   }, [clientId, filterMedia, filterAnalyzed]);
 
-  useEffect(() => { return stopPolling; }, []);
+  useEffect(() => { return () => { stopPolling(); stopSafetyTimer(); }; }, []);
 
   useEffect(() => {
     if (!analyzing) return;
     const nowAnalyzed = posts.filter((p) => !!p.analysis).length;
     if (nowAnalyzed > analyzedBeforeRef.current) {
+      stopSafetyTimer();
       stopPolling();
       setAnalyzing(false);
       addToast("Análise concluída", "success");
@@ -107,7 +114,7 @@ export default function PostsPage() {
         addToast("Análise iniciada — atualizará em breve", "info");
         stopPolling();
         pollRef.current = setInterval(() => load(true), 5000);
-        setTimeout(() => { stopPolling(); setAnalyzing(false); }, 30_000);
+        safetyTimerRef.current = setTimeout(() => { stopPolling(); setAnalyzing(false); }, 120_000);
       } else {
         const data = await res.json();
         addToast(data.message ?? "Erro ao disparar análise", "error");
