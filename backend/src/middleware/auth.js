@@ -8,7 +8,7 @@ export function requireAuth(req, res, next) {
   }
   const token = header.slice(7);
   try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    const payload = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ["HS256"] });
     req.user = { id: payload.sub, clientId: payload.clientId ?? null, role: payload.role, clientPlan: payload.clientPlan ?? null };
     next();
   } catch {
