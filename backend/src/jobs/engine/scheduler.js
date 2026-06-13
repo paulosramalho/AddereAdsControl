@@ -11,6 +11,13 @@ import { publishScheduledPosts } from "../instagram/publisher.js";
 import { alertBudget } from "../instagram/budgetAlert.js";
 
 const lastRun = new Map();
+
+// Cache em memória da lista de clientes ativos — evita um findMany no Neon a cada
+// tick de 5min (que sozinho mantinha o banco acordado 24/7, sem suspender).
+let _clientsCache = null;
+let _clientsCacheAt = 0;
+const CLIENTS_CACHE_TTL_MS = 30 * 60 * 1000;
+
 const key = (clientId, job) => `${clientId}:${job}`;
 const hoursSince = (clientId, job) => {
   const t = lastRun.get(key(clientId, job));
@@ -38,18 +45,29 @@ const DAILY = [
 ];
 
 async function tick() {
-  let clients;
-  try {
-    clients = await prisma.client.findMany({ where: { status: "ACTIVE" } });
-  } catch (err) {
-    console.error("[scheduler] erro ao carregar clientes:", err.message);
-    return;
-  }
-
   const hour = brtHour();
   const dow = brtDow();
 
-  for (const client of clients) {
+  // Gate em memória ANTES de tocar o banco: só há trabalho se algum job diário cai
+  // nesta hora, o relatório semanal está na janela, ou a publicação IG está ligada.
+  // Caso contrário, zero query no Neon (deixa o compute suspender).
+  const anyDailyDue = DAILY.some((d) => d.hour === hour);
+  const weeklyDue = dow === "Mon" && hour === 7;
+  const publishEnabled = process.env.IG_PUBLISH_ENABLED === "true";
+  if (!anyDailyDue && !weeklyDue && !publishEnabled) return;
+
+  const now = Date.now();
+  if (!_clientsCache || now - _clientsCacheAt > CLIENTS_CACHE_TTL_MS) {
+    try {
+      _clientsCache = await prisma.client.findMany({ where: { status: "ACTIVE" } });
+      _clientsCacheAt = now;
+    } catch (err) {
+      console.error("[scheduler] erro ao carregar clientes:", err.message);
+      return;
+    }
+  }
+
+  for (const client of _clientsCache) {
     const cid = client.id;
 
     for (const { job, hour: h, fn } of DAILY) {
