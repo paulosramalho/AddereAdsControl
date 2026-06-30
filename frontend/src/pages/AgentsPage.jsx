@@ -101,6 +101,7 @@ export default function AgentsPage() {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [running, setRunning] = useState({});
+  const [selectedKey, setSelectedKey] = useState(null);
   const pollRef = useRef(null);
 
   function stopPolling() {
@@ -167,16 +168,19 @@ export default function AgentsPage() {
     }
   }
 
-  const totalJobs = clients.reduce((sum, c) => sum + c.jobs.length, 0);
-
   if (loading) return <div className="p-8 text-slate-400">Carregando agentes...</div>;
   if (!clients.length) return <div className="p-8 text-slate-400">Nenhuma execução registrada ainda.</div>;
+
+  const keys = clients.map((c) => c.clientId ?? "__global__");
+  const activeKey = selectedKey && keys.includes(selectedKey) ? selectedKey : keys[0];
+  const active = clients.find((c) => (c.clientId ?? "__global__") === activeKey);
+  const useSelect = clients.length > 5;
 
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold text-white">
-          Agentes <span className="text-slate-500 font-normal">({totalJobs})</span>
+          Agentes <span className="text-slate-500 font-normal">({clients.length})</span>
         </h1>
         <button
           onClick={load}
@@ -186,11 +190,47 @@ export default function AgentsPage() {
         </button>
       </div>
 
-      {clients.map((c) => (
-        <div key={c.clientId ?? "__global__"} className="bg-slate-800 rounded-xl border border-slate-700">
+      {clients.length > 1 &&
+        (useSelect ? (
+          <select
+            value={activeKey}
+            onChange={(e) => setSelectedKey(e.target.value)}
+            className="bg-slate-800 border border-slate-700 text-white text-sm rounded-lg px-3 py-2 focus:border-blue-500 outline-none w-full sm:w-72"
+          >
+            {clients.map((c) => (
+              <option key={c.clientId ?? "__global__"} value={c.clientId ?? "__global__"}>
+                {c.clientName ?? "Global"}
+                {c.clientSlug ? ` — ${c.clientSlug}` : ""}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <div className="flex items-center gap-2 flex-wrap">
+            {clients.map((c) => {
+              const k = c.clientId ?? "__global__";
+              const isActive = k === activeKey;
+              return (
+                <button
+                  key={k}
+                  onClick={() => setSelectedKey(k)}
+                  className={`text-sm px-3 py-1.5 rounded-lg border transition ${
+                    isActive
+                      ? "bg-blue-600 border-blue-600 text-white"
+                      : "border-slate-700 text-slate-400 hover:border-slate-500 hover:text-white"
+                  }`}
+                >
+                  {c.clientName ?? "Global"}
+                </button>
+              );
+            })}
+          </div>
+        ))}
+
+      {active && (
+        <div className="bg-slate-800 rounded-xl border border-slate-700">
           <div className="px-5 py-3 border-b border-slate-700 flex items-center gap-3">
-            <span className="font-medium text-white">{c.clientName ?? "Global"}</span>
-            {c.clientSlug && <span className="text-xs text-slate-500">{c.clientSlug}</span>}
+            <span className="font-medium text-white">{active.clientName ?? "Global"}</span>
+            {active.clientSlug && <span className="text-xs text-slate-500">{active.clientSlug}</span>}
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -205,8 +245,8 @@ export default function AgentsPage() {
                 </tr>
               </thead>
               <tbody>
-                {c.jobs.map((j) => {
-                  const rkey = `${c.clientId}-${j.name}`;
+                {active.jobs.map((j) => {
+                  const rkey = `${active.clientId}-${j.name}`;
                   return (
                     <tr key={j.name} className="border-b border-slate-700/50 last:border-0 hover:bg-slate-700/20">
                       <td className="px-5 py-2.5 min-w-[140px]">
@@ -231,7 +271,7 @@ export default function AgentsPage() {
                       <td className="px-4 py-2.5 text-slate-400 whitespace-nowrap">{nextRunLabel(j.name)}</td>
                       <td className="px-4 py-2.5 text-right">
                         <button
-                          onClick={() => trigger(j.name, c.clientId)}
+                          onClick={() => trigger(j.name, active.clientId)}
                           disabled={running[rkey] || j.status === "RUNNING"}
                           className="text-xs px-2.5 py-1 rounded border border-slate-600 text-slate-400 hover:border-blue-500 hover:text-blue-400 disabled:opacity-40 disabled:cursor-not-allowed transition whitespace-nowrap"
                         >
@@ -245,7 +285,7 @@ export default function AgentsPage() {
             </table>
           </div>
         </div>
-      ))}
+      )}
     </div>
   );
 }
