@@ -57,6 +57,22 @@ async function createMediaContainer(userId, accessToken, post) {
   return data.id;
 }
 
+async function waitForContainerReady(containerId, accessToken, { tries = 12, delayMs = 5000 } = {}) {
+  for (let i = 0; i < tries; i++) {
+    const params = new URLSearchParams({ fields: "status_code,status", access_token: accessToken });
+    const res = await fetch(`https://graph.facebook.com/v22.0/${containerId}?${params}`);
+    if (res.ok) {
+      const d = await res.json();
+      if (d.status_code === "FINISHED") return;
+      if (d.status_code === "ERROR" || d.status_code === "EXPIRED") {
+        throw new Error(`Container ${d.status_code}: ${d.status || ""}`.slice(0, 200));
+      }
+    }
+    await new Promise((r) => setTimeout(r, delayMs));
+  }
+  throw new Error("Timeout aguardando processamento da mídia (container não ficou FINISHED)");
+}
+
 async function publishContainer(userId, containerId, accessToken) {
   const params = new URLSearchParams({ creation_id: containerId, access_token: accessToken });
   const res = await fetch(`https://graph.facebook.com/v22.0/${userId}/media_publish`, {
@@ -96,6 +112,7 @@ export async function publishScheduledPosts(client) {
     await prisma.scheduledPost.update({ where: { id: post.id }, data: { status: "PUBLISHING" } });
     try {
       const containerId = await createMediaContainer(userId, accessToken, post);
+      await waitForContainerReady(containerId, accessToken);
       const igPostId = await publishContainer(userId, containerId, accessToken);
 
       await prisma.scheduledPost.update({
