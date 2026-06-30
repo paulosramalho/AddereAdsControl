@@ -98,7 +98,7 @@ Token armazenado em `localStorage` no frontend. Middleware `requireAuth` em `bac
 - **Roadmap** (sequência de implementação — retomar com "Continuar roadmap"): `docs/ROADMAP.md`
 - **Backend Fase 1** (schema, auth, credentials, leads): `docs/BACKEND_FASE1.md`
 - **Campanhas** (GET /clients/:id/campaigns, CampaignsPage, acesso por role): `docs/CAMPANHAS.md`
-- **Otimização Neon** (scale-to-zero, cache do publisher, checklist de consumo): `docs/NEON_OTIMIZACAO.md`
+- **Otimização Neon** (scale-to-zero, cache do publisher, checklist de consumo): **doc consolidado da org** em `C:\Paulo\Neon\CUSTO_NEON.md` (fonte única de custo Neon de todos os projetos)
 
 ---
 
