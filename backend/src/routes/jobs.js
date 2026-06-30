@@ -13,7 +13,15 @@ import { generateWeeklyReport } from "../jobs/reports/weekly.js";
 import { notifyInstagram } from "../jobs/instagram/notify.js";
 
 const router = Router();
-router.use(requireAuth, requireSuperAdmin);
+router.use(requireAuth);
+
+// Jobs que um ADMIN de cliente pode disparar para o PRÓPRIO cliente (self-serve).
+// Qualquer outro job, ou rodar para todos os clientes, continua exclusivo do SUPER_ADMIN.
+const SELF_SERVE_JOBS = new Set([
+  "trending-suggestions",
+  "content-suggestions",
+  "boost-suggestions",
+]);
 
 const JOB_MAP = {
   "ads-collection":        (client) => collectAds(client),
@@ -29,11 +37,20 @@ const JOB_MAP = {
 
 router.post("/:jobName/run", async (req, res) => {
   const { jobName } = req.params;
-  const { clientId } = req.body;
+  const isSuper = req.user.role === "SUPER_ADMIN";
+  let clientId = req.body.clientId;
 
   const fn = JOB_MAP[jobName];
   if (!fn) {
     return res.status(404).json({ message: `Job desconhecido: ${jobName}` });
+  }
+
+  if (!isSuper) {
+    // ADMIN de cliente: só jobs self-serve e só para o próprio cliente.
+    if (req.user.role !== "ADMIN" || !req.user.clientId || !SELF_SERVE_JOBS.has(jobName)) {
+      return res.status(403).json({ message: "Permissão insuficiente" });
+    }
+    clientId = req.user.clientId; // força próprio cliente — ignora clientId do body
   }
 
   let clients;
@@ -54,7 +71,7 @@ router.post("/:jobName/run", async (req, res) => {
   res.json({ ok: true });
 });
 
-router.get("/", (_req, res) => {
+router.get("/", requireSuperAdmin, (_req, res) => {
   res.json({ jobs: Object.keys(JOB_MAP) });
 });
 
