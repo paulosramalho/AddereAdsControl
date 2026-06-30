@@ -1,6 +1,17 @@
 import prisma from "../../lib/prisma.js";
 import { decrypt } from "../../lib/crypto.js";
 
+// Cache em memória do próximo vencimento por cliente (scale-to-zero).
+// Valor: timestamp (ms) do próximo post SCHEDULED, ou null se não há nenhum.
+// Ausente no Map = desconhecido → consultar o banco no próximo tick.
+const _nextDueCache = new Map();
+
+// Chamar ao criar/alterar/cancelar um agendamento — força o publisher a
+// reconsultar o banco no próximo tick. Mesmo processo Node do scheduler.
+export function invalidatePublisherCache(clientId) {
+  _nextDueCache.delete(clientId);
+}
+
 async function getCred(clientId, key) {
   const c = await prisma.clientCredential.findUnique({
     where: { clientId_platform_key: { clientId, platform: "INSTAGRAM", key } },
@@ -91,10 +102,24 @@ async function publishContainer(userId, containerId, accessToken) {
 export async function publishScheduledPosts(client) {
   if (process.env.IG_PUBLISH_ENABLED !== "true") return;
 
-  const now = new Date();
-  const posts = await prisma.scheduledPost.findMany({
-    where: { clientId: client.id, status: "SCHEDULED", scheduledAt: { lte: now } },
+  const nowMs = Date.now();
+  const cachedDueAt = _nextDueCache.get(client.id);
+  // Sabemos o próximo vencimento e ele ainda não chegou (ou não há nenhum):
+  // não toca o banco. Esta é a guarda que preserva o scale-to-zero do Neon.
+  if (cachedDueAt !== undefined && (cachedDueAt === null || nowMs < cachedDueAt)) return;
+
+  // Cache vazio ou já vencido → única consulta: todos SCHEDULED ordenados.
+  const now = new Date(nowMs);
+  const scheduled = await prisma.scheduledPost.findMany({
+    where: { clientId: client.id, status: "SCHEDULED" },
+    orderBy: { scheduledAt: "asc" },
   });
+
+  const posts = scheduled.filter((p) => p.scheduledAt <= now);
+  const future = scheduled.find((p) => p.scheduledAt > now);
+  // Cacheia o próximo vencimento futuro (ou null se não há) — evita reconsultar
+  // o banco a cada tick enquanto nada estiver vencido.
+  _nextDueCache.set(client.id, future ? future.scheduledAt.getTime() : null);
 
   if (posts.length === 0) return;
 

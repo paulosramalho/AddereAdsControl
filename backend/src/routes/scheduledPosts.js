@@ -3,6 +3,7 @@ import { z } from "zod";
 import prisma from "../lib/prisma.js";
 import { requireAuth, requireSameClient, requireAdminOrSuper, requireFeature } from "../middleware/auth.js";
 import { validateBody } from "../middleware/validate.js";
+import { invalidatePublisherCache } from "../jobs/instagram/publisher.js";
 
 const router = Router({ mergeParams: true });
 router.use(requireAuth, requireSameClient, requireFeature("calendar"));
@@ -71,6 +72,7 @@ router.post("/", requireAdminOrSuper, validateBody(createSchema), async (req, re
       data,
       include: { contentSuggestion: true },
     });
+    invalidatePublisherCache(clientId);
     res.status(201).json({ ok: true, post });
   } catch (err) {
     res.status(500).json({ ok: false, message: err.message });
@@ -121,6 +123,7 @@ router.put("/:postId", requireAdminOrSuper, validateBody(updateSchema), async (r
     data,
     include: { contentSuggestion: true },
   });
+  invalidatePublisherCache(clientId);
   res.json({ ok: true, post });
 });
 
@@ -134,6 +137,7 @@ router.delete("/:postId", requireAdminOrSuper, async (req, res) => {
     where: { id: postId },
     data: { status: "CANCELLED" },
   });
+  invalidatePublisherCache(clientId);
   res.json({ ok: true, post });
 });
 
