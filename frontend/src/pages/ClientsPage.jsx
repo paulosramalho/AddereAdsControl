@@ -4,6 +4,8 @@ import { api } from "../lib/api.js";
 import { ConfirmModal } from "../components/ConfirmModal.jsx";
 import { useToast } from "../components/Toast.jsx";
 
+const PLAN_LABEL = { ESSENCIAL: "Essencial", PROFISSIONAL: "Profissional", COMPLETO: "Completo", AGENCIA: "Agência" };
+
 const STATUSES = ["TRIAL", "ACTIVE", "SUSPENDED"];
 const STATUS_LABEL = { TRIAL: "Trial", ACTIVE: "Ativo", SUSPENDED: "Suspenso" };
 const STATUS_COLOR = {
@@ -141,9 +143,16 @@ export default function ClientsPage() {
                   <p className="text-white font-semibold text-base truncate">{client.name}</p>
                   <p className="text-slate-500 text-xs mt-0.5">{client.slug}</p>
                 </div>
-                <span className={`px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0 ${STATUS_COLOR[client.status] ?? ""}`}>
-                  {STATUS_LABEL[client.status] ?? client.status}
-                </span>
+                <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLOR[client.status] ?? ""}`}>
+                    {STATUS_LABEL[client.status] ?? client.status}
+                  </span>
+                  {client.plan && (
+                    <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-500/20 text-indigo-300">
+                      {PLAN_LABEL[client.plan] ?? client.plan}
+                    </span>
+                  )}
+                </div>
               </div>
               {client.niche && <p className="text-slate-400 text-xs">{client.niche}</p>}
               {/* Instagram token health */}

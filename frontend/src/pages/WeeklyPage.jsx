@@ -2,9 +2,12 @@ import { useEffect, useState } from "react";
 import { api } from "../lib/api.js";
 import { useToast } from "../components/Toast.jsx";
 
+// weekStart/weekEnd são limites de semana (date-only). Exibir em UTC para mostrar
+// o dia exato gravado — em America/Belem (UTC-3) um valor à meia-noite UTC voltaria
+// para o dia anterior (ex.: 29/06 viraria 28/06 no header).
 function fmtDate(dateStr) {
   if (!dateStr) return "—";
-  return new Date(dateStr).toLocaleDateString("pt-BR", { timeZone: "America/Belem", day: "2-digit", month: "2-digit", year: "numeric" });
+  return new Date(dateStr).toLocaleDateString("pt-BR", { timeZone: "UTC", day: "2-digit", month: "2-digit", year: "numeric" });
 }
 
 export default function WeeklyPage() {
