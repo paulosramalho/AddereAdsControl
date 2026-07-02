@@ -21,6 +21,7 @@ export default function CalendarGrid({ posts = [], month, onPrevMonth, onNextMon
   const year = month.getFullYear();
   const monthIdx = month.getMonth();
   const monthName = month.toLocaleString("pt-BR", { timeZone: "America/Belem", month: "long", year: "numeric" });
+  const monthLabel = monthName.charAt(0).toLocaleUpperCase("pt-BR") + monthName.slice(1);
   const startOffset = new Date(year, monthIdx, 1).getDay();
   const today = new Date();
 
@@ -35,7 +36,7 @@ export default function CalendarGrid({ posts = [], month, onPrevMonth, onNextMon
         >
           ←
         </button>
-        <span className="text-white font-medium capitalize">{monthName}</span>
+        <span className="text-white font-medium">{monthLabel}</span>
         <button
           onClick={onNextMonth}
           className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition text-sm"
