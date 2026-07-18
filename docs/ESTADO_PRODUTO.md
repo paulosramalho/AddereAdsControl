@@ -152,6 +152,9 @@ Página `/content` organizada em 4 abas:
 - CRUD de clientes: nome · slug · nicho · público-alvo · keywords · tom · timezone · logo
 - Status: TRIAL · ACTIVE · SUSPENDED
 - Vault de credenciais por cliente: formulário por plataforma (Google Ads / Meta Ads / Instagram / Anthropic / Resend)
+- Painel de prontidão de publicação em `SettingsPage.jsx`: valida plano, cliente ativo, R2, `IG_PUBLISH_ENABLED`, token Instagram, `user_id` e acesso da conta IG pelo token
+- Endpoint operacional: `GET /clients/:clientId/settings/publishing-readiness`
+- Onboarding específico da Cláudia Ramalho Crochê: `docs/PUBLICACAO_INSTAGRAM_CLAUDIA.md`
 - Credenciais salvas criptografadas; nunca retornadas pela API
 
 ---
