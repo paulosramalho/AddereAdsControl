@@ -14,9 +14,17 @@ const lastRun = new Map();
 
 // Cache em memória da lista de clientes ativos — evita um findMany no Neon a cada
 // tick de 5min (que sozinho mantinha o banco acordado 24/7, sem suspender).
+// TTL longo: cliente ativo muda raramente; mutações em /clients invalidam via
+// invalidateClientsCache, então o TTL é só uma rede de segurança.
 let _clientsCache = null;
 let _clientsCacheAt = 0;
-const CLIENTS_CACHE_TTL_MS = 30 * 60 * 1000;
+const CLIENTS_CACHE_TTL_MS = 6 * 60 * 60 * 1000;
+
+// Chamar ao criar/alterar cliente — força refetch no próximo tick.
+export function invalidateClientsCache() {
+  _clientsCache = null;
+  _clientsCacheAt = 0;
+}
 
 const key = (clientId, job) => `${clientId}:${job}`;
 const hoursSince = (clientId, job) => {

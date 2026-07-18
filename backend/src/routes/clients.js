@@ -3,6 +3,7 @@ import { z } from "zod";
 import prisma from "../lib/prisma.js";
 import { requireAuth, requireSuperAdmin } from "../middleware/auth.js";
 import { validateBody } from "../middleware/validate.js";
+import { invalidateClientsCache } from "../jobs/engine/scheduler.js";
 
 const router = Router();
 router.use(requireAuth, requireSuperAdmin);
@@ -34,6 +35,7 @@ router.post("/", validateBody(clientSchema), async (req, res) => {
     throw err;
   });
   if (!client) return res.status(409).json({ message: "Slug já em uso" });
+  invalidateClientsCache();
   res.status(201).json(client);
 });
 
@@ -48,6 +50,7 @@ router.put("/:id", validateBody(clientSchema.partial()), async (req, res) => {
     .update({ where: { id: req.params.id }, data: req.body })
     .catch((err) => { if (err.code === "P2025") return null; throw err; });
   if (!client) return res.status(404).json({ message: "Cliente não encontrado" });
+  invalidateClientsCache();
   res.json(client);
 });
 
@@ -59,6 +62,7 @@ router.patch(
       .update({ where: { id: req.params.id }, data: { status: req.body.status } })
       .catch((err) => { if (err.code === "P2025") return null; throw err; });
     if (!client) return res.status(404).json({ message: "Cliente não encontrado" });
+    invalidateClientsCache();
     res.json(client);
   }
 );
