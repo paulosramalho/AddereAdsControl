@@ -154,6 +154,7 @@ Página `/content` organizada em 4 abas:
 - Vault de credenciais por cliente: formulário por plataforma (Google Ads / Meta Ads / Instagram / Anthropic / Resend)
 - Painel de prontidão de publicação em `SettingsPage.jsx`: valida plano, cliente ativo, R2, `IG_PUBLISH_ENABLED`, token Instagram, `user_id` e acesso da conta IG pelo token
 - Endpoint operacional: `GET /clients/:clientId/settings/publishing-readiness`
+- Manual geral de onboarding para publicação Instagram: `docs/ONBOARDING_PUBLICACAO_INSTAGRAM.md`
 - Onboarding específico da Cláudia Ramalho Crochê: `docs/PUBLICACAO_INSTAGRAM_CLAUDIA.md`
 - Credenciais salvas criptografadas; nunca retornadas pela API
 

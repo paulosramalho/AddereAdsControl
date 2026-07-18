@@ -1,100 +1,201 @@
 # Publicação Instagram — Cláudia Ramalho Crochê
 
 Data de referência: 18/07/2026
-Cliente: `claudia-ramalho-croche`
-Instagram: `@claudiaramalhocroche`
 
-## Objetivo
+Este documento aplica o manual geral [ONBOARDING_PUBLICACAO_INSTAGRAM.md](ONBOARDING_PUBLICACAO_INSTAGRAM.md) ao cliente `claudia-ramalho-croche`.
 
-Deixar a cliente apta a publicar pelo Addere Ads Control: upload de mídia, agendamento, publicação automática no Instagram e leitura posterior de métricas básicas do post publicado.
+## Identificação
 
-## Estado no Addere Ads Control
+| Campo | Valor |
+|---|---|
+| Cliente Addere | `claudia-ramalho-croche` |
+| Nome no sistema | Cláudia Maia Ramalho |
+| Instagram | `@claudiaramalhocroche` |
+| Nicho | Crochê |
+| Público-alvo | Adultos de 25 em diante |
+| Keywords | crochê, linhas, argolas, correntes |
+| Tom | Estilo de vida |
+| Admin cliente | Amanda Maia Ramalho — `amanda.ramalho15@gmail.com` |
 
-- Cliente existe e está `ACTIVE`.
-- Plano está `COMPLETO`, necessário para `settings`, `calendar`, `publish` e `boost`.
-- Usuária Amanda Maia Ramalho já existe como `ADMIN`.
-- R2 está configurado no ambiente local consultado (`R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, `R2_PUBLIC_URL_BASE`).
-- `render.yaml` declara `IG_PUBLISH_ENABLED=true` em produção.
-- `.env` local está com publicação desligada, o que evita posts acidentais durante teste local.
-- Ainda faltam as credenciais `INSTAGRAM.access_token` e `INSTAGRAM.user_id` no vault da cliente.
+## O que já foi feito
 
-## Adequação da conta Instagram/Meta
+- Cliente criado no Addere Ads Control.
+- Cliente está `ACTIVE`.
+- Plano está `COMPLETO`, liberando `settings`, `calendar`, `publish`, `boost` e módulos de conteúdo.
+- Amanda Maia Ramalho está criada como `ADMIN`.
+- R2 está configurado no ambiente consultado, permitindo upload e biblioteca de mídia.
+- `render.yaml` declara `IG_PUBLISH_ENABLED=true` para produção.
+- `.env` local está com publicação desligada, evitando publicação acidental em teste local.
+- Painel `Configurações > Prontidão de publicação` foi implementado no produto.
+- Endpoint `GET /clients/:clientId/settings/publishing-readiness` foi implementado.
+- Manual geral de onboarding foi criado em `docs/ONBOARDING_PUBLICACAO_INSTAGRAM.md`.
 
-A conta precisa estar preparada antes de salvar credenciais no sistema:
+## Estado atual
 
-1. Confirmar que `@claudiaramalhocroche` é conta profissional do Instagram (`Business` ou `Creator`). Para publicação de Stories via API, preferir `Business`.
-2. Garantir que a conta não esteja privada.
-3. Vincular a conta Instagram a uma Página do Facebook.
-4. Garantir que a pessoa que vai gerar o token tenha permissão administrativa na Página e acesso à conta Instagram vinculada.
-5. Usar um app Meta do tipo Business ou o app já aprovado/operacional da Addere.
-6. Solicitar/conceder permissões compatíveis com o fluxo atual:
-   - `pages_show_list`
-   - `pages_read_engagement`
-   - `instagram_basic`
-   - `instagram_content_publish`
-   - `instagram_manage_insights` se a coleta/análise de métricas for usada
-   - `instagram_manage_comments` se o primeiro comentário ou moderação for usado
-7. Gerar token e identificar a conta IG vinculada pela Graph API:
-   - `GET /me/accounts?fields=name,access_token,tasks,instagram_business_account`
-   - Salvar o `access_token` da Página em `INSTAGRAM.access_token`.
-   - Salvar `instagram_business_account.id` em `INSTAGRAM.user_id`.
+Ainda não há credenciais Instagram no vault da cliente:
 
-Referências: documentação da coleção oficial Meta/Postman para Instagram API e Central de Ajuda do Instagram sobre contas profissionais.
+- `INSTAGRAM.access_token`: pendente
+- `INSTAGRAM.user_id`: pendente
 
-## Configuração no Addere Ads Control
+Também ainda não há posts coletados, sugestões ou agendamentos para esta cliente.
 
-1. A usuária Amanda deve sair e entrar novamente após mudança de plano, para o JWT carregar `clientPlan=COMPLETO`.
-2. Acessar `Configurações`.
-3. Em `Instagram`, preencher:
-   - `Access Token`: Page Access Token com permissão de publicação.
-   - `User ID`: ID numérico da conta Instagram Business/Creator.
-4. Usar `Verificar token`.
-5. Conferir o painel `Prontidão de publicação`:
-   - Cliente ativo
-   - Plano com publicação
-   - Biblioteca de mídia configurada
-   - Publicador habilitado no ambiente
-   - Token salvo e válido
-   - ID da conta Instagram salvo
-   - Conta Instagram acessível pelo token
+## O que falta fazer
 
-## Primeiro teste de publicação
+1. Confirmar se `@claudiaramalhocroche` já é conta profissional.
+2. Se necessário, converter para conta profissional, preferencialmente `Business`.
+3. Confirmar que o perfil está público.
+4. Criar ou validar uma Página Facebook para a marca.
+5. Vincular a conta Instagram profissional à Página.
+6. Garantir que a pessoa operacional tenha permissão/admin na Página.
+7. Gerar token no app Meta correto da Addere.
+8. Obter o `Page Access Token` e o `instagram_business_account.id`.
+9. Salvar os dois valores no vault da cliente.
+10. Conferir o painel de prontidão.
+11. Fazer primeira publicação de teste.
+12. Rodar coleta de Instagram após publicação.
 
-1. Usar uma imagem simples, aprovada pela cliente, em JPEG ou PNG.
-2. Preferir feed quadrado `1080x1080` ou vertical `1080x1350`.
-3. Em `Conteúdo > Calendário`, criar um agendamento para 10 a 15 minutos no futuro.
-4. Subir a mídia pelo botão de upload, para usar URL pública do R2.
-5. Escrever legenda curta, sem marcações sensíveis no primeiro teste.
-6. Salvar como `SCHEDULED`.
-7. Aguardar o publisher do scheduler ou disparar `publish-scheduled` pela tela de Agentes como super admin.
-8. Verificar se o agendamento mudou para `PUBLISHED` e abriu o link do Instagram.
-9. Rodar `instagram-collection` depois da publicação para coletar métricas do post no banco.
+## Roteiro guiado da chamada
 
-## Especificações de mídia recomendadas
+Regra: não pedir senha pelo chat. O ideal é a cliente/Amanda compartilhar tela e fazer login no próprio navegador/celular.
 
-- Foto de feed: largura ideal de 1080 px; proporção entre `1.91:1` e `3:4` conforme orientação pública do Instagram.
-- Carrossel: 2 a 10 itens; para primeiro uso, manter todas as imagens na mesma proporção.
-- Reel: MOV ou MP4, codec H.264 ou HEVC, áudio AAC, 23 a 60 FPS, até 1920 px de largura, 3 segundos a 15 minutos, até 1 GB conforme coleção Meta/Postman.
-- Story: usar conta `Business`; preferir vertical `9:16`.
+### 1. Instagram
 
-## Troubleshooting
+No celular logado em `@claudiaramalhocroche`:
 
-| Sintoma | Causa provável | Ação |
-|---|---|---|
-| `Token Instagram salvo e válido` falha | token expirado, token errado ou sem permissões | gerar novo token com permissões corretas |
-| `Conta Instagram acessível pelo token` falha | `user_id` não pertence à Página/token usado | consultar `/me/accounts` novamente e copiar `instagram_business_account.id` correto |
-| Upload falha | R2 ausente ou arquivo inválido | confirmar envs R2 e usar JPEG/PNG/MP4 válido |
-| Agendamento fica `SCHEDULED` e não publica | `IG_PUBLISH_ENABLED` desligado no ambiente em execução | confirmar env no Render e reiniciar/deployar backend |
-| Post fica `FAILED` com erro Meta | mídia fora do padrão, permissão ausente ou token sem publicação | abrir erro no modal do post, ajustar mídia/token e reagendar |
-| Reel fica demorando | processamento assíncrono da Meta | aguardar até alguns minutos; se falhar, revisar codec/duração/tamanho |
+1. Abrir o perfil.
+2. Confirmar se aparece painel/ferramentas profissionais.
+3. Se não aparecer, ir em configurações da conta e alternar para conta profissional.
+4. Escolher `Business`, pois dá o caminho mais completo para publicação, Stories, contato e loja futura.
+5. Selecionar categoria ligada a artesanato/crochê.
+6. Confirmar que a conta está pública.
+7. Revisar nome, bio, foto, link e contato.
+
+Resultado esperado: Instagram profissional público.
+
+### 2. Página Facebook
+
+No Facebook/Meta Business Suite:
+
+1. Confirmar se já existe Página oficial.
+2. Se não existir, criar Página com nome próximo de `Cláudia Ramalho Crochê`.
+3. Vincular o Instagram `@claudiaramalhocroche` à Página.
+4. Confirmar que a pessoa operacional tem acesso/admin.
+5. Se a Addere for operar, adicionar acesso delegado da Addere pelo Business Suite.
+
+Resultado esperado: Página aparece no Business Suite com Instagram vinculado.
+
+### 3. Token Meta
+
+Usar o app Meta correto da Addere e gerar token com:
+
+- `pages_show_list`
+- `pages_read_engagement`
+- `instagram_basic`
+- `instagram_content_publish`
+- `instagram_manage_insights`, se for coletar métricas
+- `instagram_manage_comments`, se for usar primeiro comentário/gestão de comentários
+
+Consultar:
+
+```http
+GET https://graph.facebook.com/v22.0/me/accounts?fields=name,id,access_token,tasks,instagram_business_account&access_token=<USER_ACCESS_TOKEN>
+```
+
+Da Página correta, coletar:
+
+- `access_token` da Página
+- `instagram_business_account.id`
+
+Não registrar o token neste documento.
+
+### 4. Validação antes do vault
+
+Validar a conta:
+
+```http
+GET https://graph.facebook.com/v22.0/<IG_USER_ID>?fields=id,username,name,account_type,media_count&access_token=<PAGE_ACCESS_TOKEN>
+```
+
+Validar permissão de publicação:
+
+```http
+GET https://graph.facebook.com/v22.0/<IG_USER_ID>/content_publishing_limit?access_token=<PAGE_ACCESS_TOKEN>
+```
+
+Se `content_publishing_limit` falhar, parar e corrigir permissões antes de salvar/agendar.
+
+### 5. Vault no Addere
+
+No Addere Ads Control:
+
+1. Entrar com a Amanda ou com `SUPER_ADMIN`.
+2. Se o plano foi alterado recentemente, sair e entrar novamente.
+3. Ir em `Configurações > Instagram`.
+4. Salvar `Access Token` com o Page Access Token.
+5. Salvar `User ID` com o `instagram_business_account.id`.
+6. Clicar em `Verificar token`.
+7. Atualizar `Prontidão de publicação`.
+
+Resultado esperado: todos os checks aprovados.
+
+### 6. Primeira publicação
+
+Usar um post simples e real:
+
+1. Imagem JPEG/PNG de uma peça pronta de crochê.
+2. Formato sugerido: `1080x1080` ou `1080x1350`.
+3. Legenda curta, sem marcações no primeiro teste.
+4. Agendar para 10 a 15 minutos no futuro.
+5. Fazer upload pelo Addere para usar URL R2.
+6. Salvar como `Agendado`.
+7. Aguardar o scheduler ou rodar `publish-scheduled` em `Agentes`.
+8. Confirmar status `Publicado`.
+9. Abrir o link no Instagram.
+10. Rodar `instagram-collection` para trazer métricas.
+
+## Dados a registrar após a chamada
+
+Não registrar tokens. Registrar apenas metadados operacionais:
+
+| Campo | Valor |
+|---|---|
+| Página Facebook usada | Pendente |
+| Page ID | Pendente |
+| IG User ID | Pendente |
+| Tipo da conta IG | Pendente |
+| Token salvo no vault | Pendente |
+| Prontidão 100% aprovada | Pendente |
+| Primeiro post publicado | Pendente |
+| Link do primeiro post | Pendente |
+
+## Critério de pronto
+
+A cliente só estará pronta quando:
+
+- A conta Instagram estiver profissional, pública e vinculada à Página.
+- O vault tiver `INSTAGRAM.access_token` e `INSTAGRAM.user_id`.
+- O painel de prontidão estiver 100% aprovado.
+- Um post de teste tiver sido publicado com sucesso pelo Addere Ads Control.
+- A coleta pós-publicação tiver sido executada ao menos uma vez.
 
 ## Direção editorial inicial
 
-Para uma conta de crochê ainda crua no controle, começar com publicações de baixo risco e alto contexto:
+Para a entrada da Cláudia no controle, começar com conteúdo simples, visual e seguro:
 
 - 3 posts de portfólio: peça pronta, detalhe do ponto, aplicação no ambiente/uso.
-- 2 Reels curtos: processo acelerado, antes/depois, textura da linha e finalização.
-- 1 carrossel educativo: cuidado com peças de crochê, escolha de cores ou tipos de linha.
-- 1 Story de bastidor: mesa de trabalho, encomenda em andamento ou enquete simples.
+- 2 Reels curtos: processo acelerado, textura da linha e finalização.
+- 1 carrossel educativo: cuidados com peças de crochê ou escolha de cores.
+- 1 Story de bastidor, se a conta for `Business` e o token validar Story.
 
 Tom recomendado: acolhedor, artesanal, visual e de estilo de vida, sem promessa agressiva de venda no primeiro ciclo.
+
+## Troubleshooting rápido
+
+| Sintoma | Causa provável | Ação |
+|---|---|---|
+| Página não aparece em `/me/accounts` | usuário sem acesso/admin | ajustar acesso no Business Suite |
+| `instagram_business_account` não aparece | Instagram não vinculado à Página | refazer vínculo Página/Instagram |
+| Token verifica, mas prontidão não fecha | falta permissão de publicação | revisar `instagram_content_publish` e app review |
+| Upload falha | R2 ou mídia inválida | validar R2 e formato do arquivo |
+| Agendamento não publica | publisher desligado no ambiente | confirmar `IG_PUBLISH_ENABLED=true` em produção |
+| Post falha na Meta | mídia, token ou permissão | abrir erro no modal, corrigir e reagendar |
