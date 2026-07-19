@@ -161,7 +161,10 @@ Depuração obrigatória:
 - Se o Access Token Debugger mostrar `Tipo: User`, esse token não é o token final do Addere.
 - Se o token de usuário estiver curto, expirado ou perto de expirar, gerar um novo token de usuário e estender para longa duração antes de buscar o token da Página.
 - O token final a salvar deve mostrar `Tipo: Page`, app correto, Página correta e `Válido: verdadeiro`.
+- Se o token da Página mostrar vencimento curto, não salvar no vault. Usar `Estender token de acesso`; se a extensão retornar um User Access Token, consultar `/me/accounts` novamente e depurar o novo token da Página.
+- Se o token estendido continuar com vencimento, registrar a data absoluta de expiração e programar renovação antes desse prazo.
 - Os escopos granulares devem apontar para a Página e para o Instagram profissional corretos.
+- Em `tasks`, conferir pelo menos permissão equivalente a criação de conteúdo, análise e gerenciamento da Página.
 
 Se a Página não aparecer:
 

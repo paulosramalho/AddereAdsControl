@@ -102,14 +102,29 @@ Atualizado em 18/07/2026:
 - O Debugger confirmou app `AddereAdsControl`, usuário operacional Paulo Ramalho, permissões e escopos granulares corretos para a Página `Cláudia Ramalho Crochê` e para o Instagram `17841419257522558`.
 - O token depurado apareceu como `Tipo: User`, com vencimento curto/expirado; portanto, não é o token final a salvar no vault.
 - Próximo passo operacional: gerar ou estender um User Access Token válido, consultar novamente a Página e depurar o `access_token` da Página até aparecer `Tipo: Page`.
+- Nova consulta a `me/accounts?fields=name,id,access_token,tasks,instagram_business_account` retornou a Página correta em 19/07/2026.
+- Page ID confirmado: `1294318713754361`.
+- IG User ID confirmado: `17841419257522558`.
+- `access_token` da Página retornou no campo da Página; token não foi registrado neste documento.
+- `tasks` retornadas para a Página: `ADVERTISE`, `ANALYZE`, `CREATE_CONTENT`, `MESSAGING`, `MODERATE`, `MANAGE`.
+- Access Token Debugger confirmou o `access_token` da Página como `Tipo: Page`, app `AddereAdsControl`, Página `Cláudia Ramalho Crochê`, usuário operacional Paulo Ramalho e `Válido: Verdadeiro`.
+- Escopos granulares confirmados para a Página `1294318713754361` e para o Instagram `17841419257522558`.
+- O token de Página depurado ainda mostrou vencimento curto, cerca de uma hora; portanto, não deve ser salvo no vault.
+- A tela apresentou a ação `Estender token de acesso`.
+- Token estendido em 19/07/2026 e depurado novamente.
+- O token estendido permaneceu `Tipo: Page`, app `AddereAdsControl`, Página `Cláudia Ramalho Crochê`, usuário operacional Paulo Ramalho e `Válido: Verdadeiro`.
+- Emitido em 19/07/2026 00:43:03.
+- Expira em 16/09/2026 23:53:56.
+- Acesso aos dados expira em 17/10/2026 00:33:48.
+- O token está apto para ser salvo no vault, com renovação planejada antes de 16/09/2026.
 
 ## O que falta fazer
 
-1. Obter um Page Access Token válido e depurado como `Tipo: Page`.
-2. Salvar `access_token` e `instagram_business_account.id` no vault da cliente.
-3. Conferir o painel de prontidão.
-4. Fazer primeira publicação de teste.
-5. Rodar coleta de Instagram após publicação.
+1. Salvar `access_token` e `instagram_business_account.id` no vault da cliente.
+2. Conferir o painel de prontidão.
+3. Fazer primeira publicação de teste.
+4. Rodar coleta de Instagram após publicação.
+5. Programar renovação do token antes de 16/09/2026.
 
 ## Roteiro guiado da chamada
 
@@ -217,7 +232,7 @@ Não registrar tokens. Registrar apenas metadados operacionais:
 | Campo | Valor |
 |---|---|
 | Página Facebook usada | Cláudia Ramalho Crochê |
-| Page ID | Exibido no Debugger como `1294318713754361`; confirmar com o `id` retornado em `/me/accounts` |
+| Page ID | `1294318713754361` |
 | IG User ID | `17841419257522558` |
 | Tipo da conta IG | Profissional/Business confirmado no Instagram |
 | Token salvo no vault | Pendente |
