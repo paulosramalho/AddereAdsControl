@@ -38,7 +38,7 @@ Antes de mexer no Addere Ads Control, confirmar:
 | Privacidade | Perfil público | Contas profissionais não devem ficar privadas |
 | Facebook | Página vinculada ao Instagram | Obrigatória no fluxo Facebook Login usado pelo produto |
 | Permissão humana | Usuário com controle/admin da Página | Precisa enxergar a Página em `/me/accounts` |
-| Meta App | App Business da Addere ou app do cliente | Precisa conceder permissões de publicação |
+| Meta App | App Business dedicado do Addere Ads Control | Precisa conceder permissões de publicação |
 | Addere | Cliente `ACTIVE` e plano com `publish` | Hoje: `COMPLETO` ou `AGENCIA` |
 | Mídia | R2 configurado no ambiente | URLs precisam ser públicas para a Meta baixar |
 
@@ -56,7 +56,57 @@ Permissões recomendadas quando também houver métricas/comentários:
 - `instagram_manage_insights`
 - `instagram_manage_comments`
 
+Decisão operacional: usar um app Meta dedicado chamado `AddereAdsControl` para novos onboardings. Apps antigos, experimentais ou de outros produtos só devem ser usados como contingência.
+
 Observação: para clientes que a Addere não possui/gerencia diretamente no app Meta, o app pode exigir **Advanced Access** e revisão da Meta. Para contas próprias, teste ou contas adicionadas ao app, o Standard Access pode bastar durante implantação controlada.
+
+## App Meta dedicado
+
+Criar e manter um app Meta próprio para o produto traz estes ganhos:
+
+- Identidade clara no consentimento do cliente.
+- Separação de riscos entre produtos/projetos.
+- Histórico de permissões, revisões e tokens concentrado no app certo.
+- Onboarding repetível para próximas contas.
+- Menos ambiguidade em troubleshooting, logs e auditoria.
+
+Configuração recomendada:
+
+| Campo | Valor recomendado |
+|---|---|
+| Nome do app | `AddereAdsControl` |
+| Tipo | Business |
+| Caso de uso | Instagram/Facebook Login e publicação de conteúdo |
+| Business | Business Manager da Addere |
+| Plataforma | Web |
+| Domínios do app | domínio de produção do frontend e domínio/API do backend |
+| Política de privacidade | URL pública da política da Addere |
+| Exclusão de dados | URL pública de instrução/callback de exclusão de dados |
+
+Permissões alvo do app:
+
+- `pages_show_list`
+- `pages_read_engagement`
+- `instagram_basic`
+- `instagram_content_publish`
+- `instagram_manage_insights`
+- `instagram_manage_comments`, quando o produto for publicar primeiro comentário ou operar comentários
+
+Enquanto o app não tiver permissões/revisão suficientes, usar `Paulo Experimento` apenas como ponte operacional controlada.
+
+### Criar o app Meta
+
+1. Abrir https://developers.facebook.com/apps/.
+2. Clicar em `Criar app`.
+3. Escolher tipo/caso de uso compatível com empresa e integração com Facebook/Instagram.
+4. Nomear como `AddereAdsControl`.
+5. Vincular ao Business Manager da Addere.
+6. Adicionar produtos necessários, começando por Facebook Login/Instagram API.
+7. Configurar domínios, URLs obrigatórias, contato e política.
+8. Solicitar as permissões alvo.
+9. Usar Graph API Explorer com esse app para gerar token de onboarding.
+
+Registrar neste manual qualquer exigência nova que a Meta apresente durante a criação.
 
 ## Passo 1 — Preparar a conta Instagram
 

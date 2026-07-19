@@ -10,7 +10,7 @@ Este documento aplica o manual geral [ONBOARDING_PUBLICACAO_INSTAGRAM.md](ONBOAR
 |---|---|
 | Cliente Addere | `claudia-ramalho-croche` |
 | Nome no sistema | Cláudia Maia Ramalho |
-| Instagram | `@claudiaramalhocroche` |
+| Instagram | `@claudiaramalhocrochet` |
 | Nicho | Crochê |
 | Público-alvo | Adultos de 25 em diante |
 | Keywords | crochê, linhas, argolas, correntes |
@@ -39,20 +39,62 @@ Ainda não há credenciais Instagram no vault da cliente:
 
 Também ainda não há posts coletados, sugestões ou agendamentos para esta cliente.
 
+## Avanço do onboarding
+
+Atualizado em 18/07/2026:
+
+- Conta profissional confirmada.
+- Conta alterada de `Criador de conteúdo` para `Comercial/Business`.
+- Conta pública confirmada.
+- Username correto confirmado: `@claudiaramalhocrochet`.
+- Campo de Página Facebook apareceu no celular.
+- Ainda não existe Página Facebook vinculada.
+- Tentativa de criar Página pelo fluxo interno do Instagram não liberou o botão `Criar`.
+- Nome tentado: `Cláudia Ramalho Crochê`.
+- Categoria tentada: `Criador de conteúdo digital`.
+- Página Facebook criada diretamente pelo Facebook.
+- Nome da Página criada: `Cláudia Ramalho Crochê`.
+- Categoria da Página: `Criador de conteúdo`.
+- Página `Cláudia Ramalho Crochê` vinculada ao Instagram `@claudiaramalhocrochet`.
+- Meta Business Suite acessado via Facebook.
+- Página `Cláudia Ramalho Crochê` visível no Meta Business Suite.
+- Instagram `@claudiaramalhocrochet` aparece vinculado à Página no Meta Business Suite.
+- Graph API Explorer acessado.
+- Apps Meta disponíveis no seletor: `Paulo Experimento` e `AMR Controles`.
+- App escolhido para o onboarding: `Paulo Experimento`.
+- App `Paulo Experimento` informado como válido, ativo e em uso no Addere Ads Control (`paulo-ramalho`).
+- Permissões disponíveis/selecionadas: `pages_show_list`, `business_management`, `instagram_basic`, `instagram_manage_insights`, `instagram_content_publish`, `pages_read_engagement`.
+- Permissão `instagram_manage_comments` não listada nesta etapa; primeiro teste deve deixar `firstComment` vazio.
+- Decisão posterior: criar app Meta dedicado `AddereAdsControl` para este onboarding e futuras contas. `Paulo Experimento` fica como contingência se o app novo ainda não estiver liberado.
+- Criação do app `AddereAdsControl` iniciada com caso de uso `Gerenciar Mensagens e Conteúdos no Instagram`.
+- Durante criação do app, a Meta ofereceu conectar ao portfólio empresarial `Cláudia Ramalho | Crochê autoral`. Para app reutilizável do produto, não conectar ao portfólio da cliente; usar/criar portfólio empresarial da Addere.
+- App `AddereAdsControl` configurado na criação com e-mail `financeiro@addereon.com.br`.
+- Caso de uso selecionado: `Gerenciar mensagens e conteúdo no Instagram`.
+- Empresa/portfólio empresarial: nenhuma empresa selecionada na criação, para evitar vincular o app ao portfólio da cliente.
+- App Meta `AddereAdsControl` criado e painel acessado.
+- App ID localizado no painel do app. Chave secreta existe e não deve ser registrada em documento/chat.
+- No Graph API Explorer, ao escolher `AddereAdsControl > Usuário ou Página > Obter token de acesso do usuário`, apareceu `Nenhuma configuração disponível`.
+- Próximo ajuste: configurar o caso de uso/produto de login Instagram/Facebook no painel do app para liberar geração de token de usuário.
+- Tela de setup encontrada: API do Instagram com app Instagram `AddereAdsControl-IG`.
+- A tela informou que, para hashtags/insights, deve ser usado `API setup with Facebook login`.
+- O backend atual do Addere Ads Control usa `graph.facebook.com/v22.0`, `Page Access Token` e `instagram_business_account.id`; portanto, este onboarding deve usar o setup com Facebook Login, não o fluxo novo de Instagram Login.
+- ID do app Instagram foi localizado, mas não deve ser necessário para o fluxo atual. Chave secreta não foi registrada.
+- Na tela `Permissões e recursos`, foram localizadas/acionáveis: `pages_show_list`, `instagram_content_publish`, `instagram_basic`, `instagram_manage_insights`, `instagram_manage_comments`.
+- Em `Casos de uso > Gerenciar mensagens e conteúdo no Instagram > Personalizar > Configuração da API com login no Facebook`, a Meta confirmou as permissões obrigatórias para gerenciar conteúdo: `instagram_basic`, `instagram_content_publishing` (nomenclatura exibida pela UI), `pages_read_engagement`, `business_management`, `pages_show_list`.
+- Próximo ponto no app: `Configurar o Login do Facebook para Empresas`.
+- Graph API Explorer com app `AddereAdsControl` passou a exibir token/permissões.
+- Permissões selecionadas no Graph API Explorer: `business_management`, `pages_read_engagement`, `pages_show_list`, `instagram_basic`, `instagram_content_publish`, `instagram_manage_comments`, `instagram_manage_insights`.
+- Arquivo interno `Depósito/AddereAdsControl_IG.txt` lido para conferência dos dados do app.
+- O arquivo contém IDs de app e chaves secretas; as chaves não devem ser copiadas para chat, docs, commits ou logs.
+
 ## O que falta fazer
 
-1. Confirmar se `@claudiaramalhocroche` já é conta profissional.
-2. Se necessário, converter para conta profissional, preferencialmente `Business`.
-3. Confirmar que o perfil está público.
-4. Criar ou validar uma Página Facebook para a marca.
-5. Vincular a conta Instagram profissional à Página.
-6. Garantir que a pessoa operacional tenha permissão/admin na Página.
-7. Gerar token no app Meta correto da Addere.
-8. Obter o `Page Access Token` e o `instagram_business_account.id`.
-9. Salvar os dois valores no vault da cliente.
-10. Conferir o painel de prontidão.
-11. Fazer primeira publicação de teste.
-12. Rodar coleta de Instagram após publicação.
+1. Gerar token no app Meta `AddereAdsControl`.
+2. Obter o `Page Access Token` e o `instagram_business_account.id`.
+3. Salvar os dois valores no vault da cliente.
+4. Conferir o painel de prontidão.
+5. Fazer primeira publicação de teste.
+6. Rodar coleta de Instagram após publicação.
 
 ## Roteiro guiado da chamada
 
@@ -60,7 +102,7 @@ Regra: não pedir senha pelo chat. O ideal é a cliente/Amanda compartilhar tela
 
 ### 1. Instagram
 
-No celular logado em `@claudiaramalhocroche`:
+No celular logado em `@claudiaramalhocrochet`:
 
 1. Abrir o perfil.
 2. Confirmar se aparece painel/ferramentas profissionais.
@@ -78,7 +120,7 @@ No Facebook/Meta Business Suite:
 
 1. Confirmar se já existe Página oficial.
 2. Se não existir, criar Página com nome próximo de `Cláudia Ramalho Crochê`.
-3. Vincular o Instagram `@claudiaramalhocroche` à Página.
+3. Vincular o Instagram `@claudiaramalhocrochet` à Página.
 4. Confirmar que a pessoa operacional tem acesso/admin.
 5. Se a Addere for operar, adicionar acesso delegado da Addere pelo Business Suite.
 
@@ -195,6 +237,7 @@ Tom recomendado: acolhedor, artesanal, visual e de estilo de vida, sem promessa 
 |---|---|---|
 | Página não aparece em `/me/accounts` | usuário sem acesso/admin | ajustar acesso no Business Suite |
 | `instagram_business_account` não aparece | Instagram não vinculado à Página | refazer vínculo Página/Instagram |
+| Botão `Criar Página` não habilita no Instagram | fluxo embutido incompleto, categoria não aceita ou limitação da interface | criar a Página diretamente no Facebook/Meta Business Suite e depois vincular ao Instagram |
 | Token verifica, mas prontidão não fecha | falta permissão de publicação | revisar `instagram_content_publish` e app review |
 | Upload falha | R2 ou mídia inválida | validar R2 e formato do arquivo |
 | Agendamento não publica | publisher desligado no ambiente | confirmar `IG_PUBLISH_ENABLED=true` em produção |
