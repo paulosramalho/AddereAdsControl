@@ -98,13 +98,18 @@ Atualizado em 18/07/2026:
   - `media_count`: `2`
 - Validação de permissão de publicação aprovada em `17841419257522558/content_publishing_limit`.
 - Resposta de publicação: `quota_usage: 0`.
+- Access Token Debugger consultado em 19/07/2026 com o token gerado no Graph API Explorer.
+- O Debugger confirmou app `AddereAdsControl`, usuário operacional Paulo Ramalho, permissões e escopos granulares corretos para a Página `Cláudia Ramalho Crochê` e para o Instagram `17841419257522558`.
+- O token depurado apareceu como `Tipo: User`, com vencimento curto/expirado; portanto, não é o token final a salvar no vault.
+- Próximo passo operacional: gerar ou estender um User Access Token válido, consultar novamente a Página e depurar o `access_token` da Página até aparecer `Tipo: Page`.
 
 ## O que falta fazer
 
-1. Salvar `access_token` e `instagram_business_account.id` no vault da cliente.
-2. Conferir o painel de prontidão.
-3. Fazer primeira publicação de teste.
-4. Rodar coleta de Instagram após publicação.
+1. Obter um Page Access Token válido e depurado como `Tipo: Page`.
+2. Salvar `access_token` e `instagram_business_account.id` no vault da cliente.
+3. Conferir o painel de prontidão.
+4. Fazer primeira publicação de teste.
+5. Rodar coleta de Instagram após publicação.
 
 ## Roteiro guiado da chamada
 
@@ -212,7 +217,7 @@ Não registrar tokens. Registrar apenas metadados operacionais:
 | Campo | Valor |
 |---|---|
 | Página Facebook usada | Cláudia Ramalho Crochê |
-| Page ID | Pendente |
+| Page ID | Exibido no Debugger como `1294318713754361`; confirmar com o `id` retornado em `/me/accounts` |
 | IG User ID | `17841419257522558` |
 | Tipo da conta IG | Profissional/Business confirmado no Instagram |
 | Token salvo no vault | Pendente |

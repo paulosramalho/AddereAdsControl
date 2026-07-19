@@ -26,6 +26,8 @@ Ao final do onboarding, o painel `Configurações > Prontidão de publicação` 
 - Preferir que o cliente faça login no próprio navegador durante chamada assistida.
 - Se a Addere precisar operar, usar acesso delegado no Meta Business Suite ou perfil operacional com 2FA.
 - Salvar token somente no vault do Addere Ads Control.
+- Nunca salvar **User Access Token** no vault. Ele é apenas intermediário para obter o **Page Access Token**.
+- Antes do vault, depurar o token final no Access Token Debugger e confirmar `Tipo: Page`.
 - Depois do onboarding, remover acessos temporários que não serão usados.
 
 ## Pré-requisitos do cliente
@@ -154,6 +156,13 @@ GET https://graph.facebook.com/v22.0/me/accounts?fields=name,id,access_token,tas
    - `access_token` da Página: salvar como `INSTAGRAM.access_token`
    - `instagram_business_account.id`: salvar como `INSTAGRAM.user_id`
 
+Depuração obrigatória:
+
+- Se o Access Token Debugger mostrar `Tipo: User`, esse token não é o token final do Addere.
+- Se o token de usuário estiver curto, expirado ou perto de expirar, gerar um novo token de usuário e estender para longa duração antes de buscar o token da Página.
+- O token final a salvar deve mostrar `Tipo: Page`, app correto, Página correta e `Válido: verdadeiro`.
+- Os escopos granulares devem apontar para a Página e para o Instagram profissional corretos.
+
 Se a Página não aparecer:
 
 - O usuário logado não tem permissão suficiente.
@@ -164,6 +173,8 @@ Se a Página não aparecer:
 ## Passo 4 — Validar antes de salvar no Addere
 
 Com o **Page Access Token** e o `instagram_business_account.id`, validar:
+
+Antes de executar as chamadas abaixo, conferir no Access Token Debugger que o token colado é de Página. Um token de usuário pode validar escopos, mas não deve ser persistido para publicação automática.
 
 ```http
 GET https://graph.facebook.com/v22.0/<IG_USER_ID>?fields=id,username,name,media_count&access_token=<PAGE_ACCESS_TOKEN>
