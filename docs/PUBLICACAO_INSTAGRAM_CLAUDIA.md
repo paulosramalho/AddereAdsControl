@@ -117,14 +117,16 @@ Atualizado em 18/07/2026:
 - Expira em 16/09/2026 23:53:56.
 - Acesso aos dados expira em 17/10/2026 00:33:48.
 - O token está apto para ser salvo no vault, com renovação planejada antes de 16/09/2026.
+- `INSTAGRAM.access_token` salvo no vault da cliente em 19/07/2026.
+- `INSTAGRAM.user_id` salvo no vault da cliente como `17841419257522558`.
+- Verificação de token no Addere Ads Control retornou OK.
+- Painel `Configurações > Prontidão de publicação` confirmado como OK.
 
 ## O que falta fazer
 
-1. Salvar `access_token` e `instagram_business_account.id` no vault da cliente.
-2. Conferir o painel de prontidão.
-3. Fazer primeira publicação de teste.
-4. Rodar coleta de Instagram após publicação.
-5. Programar renovação do token antes de 16/09/2026.
+1. Fazer primeira publicação de teste.
+2. Rodar coleta de Instagram após publicação.
+3. Programar renovação do token antes de 16/09/2026.
 
 ## Roteiro guiado da chamada
 
@@ -235,8 +237,8 @@ Não registrar tokens. Registrar apenas metadados operacionais:
 | Page ID | `1294318713754361` |
 | IG User ID | `17841419257522558` |
 | Tipo da conta IG | Profissional/Business confirmado no Instagram |
-| Token salvo no vault | Pendente |
-| Prontidão 100% aprovada | Pendente |
+| Token salvo no vault | Sim, em 19/07/2026 |
+| Prontidão 100% aprovada | Sim, em 19/07/2026 |
 | Primeiro post publicado | Pendente |
 | Link do primeiro post | Pendente |
 
