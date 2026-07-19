@@ -128,7 +128,7 @@ router.get("/publishing-readiness", async (req, res) => {
   if (accessToken && userId && tokenHealth.status === "valid") {
     try {
       const accountParams = new URLSearchParams({
-        fields: "id,username,name,account_type,media_count",
+        fields: "id,username,name,media_count",
         access_token: accessToken,
       });
       const accountRes = await fetch(`${FB_BASE}/${userId}?${accountParams}`);

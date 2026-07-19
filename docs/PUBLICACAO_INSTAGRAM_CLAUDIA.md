@@ -86,15 +86,24 @@ Atualizado em 18/07/2026:
 - Permissões selecionadas no Graph API Explorer: `business_management`, `pages_read_engagement`, `pages_show_list`, `instagram_basic`, `instagram_content_publish`, `instagram_manage_comments`, `instagram_manage_insights`.
 - Arquivo interno `Depósito/AddereAdsControl_IG.txt` lido para conferência dos dados do app.
 - O arquivo contém IDs de app e chaves secretas; as chaves não devem ser copiadas para chat, docs, commits ou logs.
+- Token gerado no Graph API Explorer com app `AddereAdsControl`.
+- Autorizado acesso apenas às Páginas atuais, selecionando `Cláudia Ramalho Crochê`.
+- Consulta `me/accounts?fields=name,id,access_token,tasks,instagram_business_account` retornou a Página, `access_token` e `instagram_business_account.id`.
+- `access_token` e `instagram_business_account.id` foram copiados para uso operacional temporário; token não foi registrado neste documento.
+- Primeira validação do `instagram_business_account.id` com `fields=id,username,name,account_type,media_count` falhou com `(#100) Tried accessing nonexisting field (account_type)`.
+- Validação refeita sem `account_type` retornou o Instagram corretamente:
+  - `id`: `17841419257522558`
+  - `username`: `claudiaramalhocrochet`
+  - `name`: `Cláudia Ramalho | Crochê autoral`
+  - `media_count`: `2`
 
 ## O que falta fazer
 
-1. Gerar token no app Meta `AddereAdsControl`.
-2. Obter o `Page Access Token` e o `instagram_business_account.id`.
-3. Salvar os dois valores no vault da cliente.
-4. Conferir o painel de prontidão.
-5. Fazer primeira publicação de teste.
-6. Rodar coleta de Instagram após publicação.
+1. Validar `instagram_business_account.id` e permissão de publicação no Graph API Explorer.
+2. Salvar `access_token` e `instagram_business_account.id` no vault da cliente.
+3. Conferir o painel de prontidão.
+4. Fazer primeira publicação de teste.
+5. Rodar coleta de Instagram após publicação.
 
 ## Roteiro guiado da chamada
 
@@ -155,7 +164,7 @@ Não registrar o token neste documento.
 Validar a conta:
 
 ```http
-GET https://graph.facebook.com/v22.0/<IG_USER_ID>?fields=id,username,name,account_type,media_count&access_token=<PAGE_ACCESS_TOKEN>
+GET https://graph.facebook.com/v22.0/<IG_USER_ID>?fields=id,username,name,media_count&access_token=<PAGE_ACCESS_TOKEN>
 ```
 
 Validar permissão de publicação:

@@ -166,8 +166,10 @@ Se a Página não aparecer:
 Com o **Page Access Token** e o `instagram_business_account.id`, validar:
 
 ```http
-GET https://graph.facebook.com/v22.0/<IG_USER_ID>?fields=id,username,name,account_type,media_count&access_token=<PAGE_ACCESS_TOKEN>
+GET https://graph.facebook.com/v22.0/<IG_USER_ID>?fields=id,username,name,media_count&access_token=<PAGE_ACCESS_TOKEN>
 ```
+
+Não incluir `account_type` nesta validação; no fluxo Facebook Login esse campo pode retornar `(#100) Tried accessing nonexisting field (account_type)`.
 
 Depois validar permissão de publicação:
 
