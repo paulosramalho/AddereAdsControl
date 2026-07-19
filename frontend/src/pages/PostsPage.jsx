@@ -51,6 +51,7 @@ export default function PostsPage() {
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(null);
   const [analyzing, setAnalyzing] = useState(false);
+  const [forcingId, setForcingId] = useState(null);
 
   const [filterMedia, setFilterMedia] = useState("");
   const [filterAnalyzed, setFilterAnalyzed] = useState("");
@@ -123,6 +124,24 @@ export default function PostsPage() {
     } catch {
       addToast("Erro ao disparar análise", "error");
       setAnalyzing(false);
+    }
+  }
+
+  async function forceAnalyze(postId) {
+    setForcingId(postId);
+    try {
+      const res = await api.post(`/clients/${clientId}/posts/${postId}/analyze`, {});
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        addToast("Post analisado", "success");
+        load(false);
+      } else {
+        addToast(data.message ?? "Erro ao analisar post", "error");
+      }
+    } catch {
+      addToast("Erro ao analisar post", "error");
+    } finally {
+      setForcingId(null);
     }
   }
 
@@ -296,6 +315,15 @@ export default function PostsPage() {
                           ) : (
                             <div className="space-y-2">
                               <p className="text-slate-500 text-sm">Este post ainda não foi analisado pela IA.</p>
+                              {canAnalyze && (
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); forceAnalyze(post.id); }}
+                                  disabled={forcingId === post.id}
+                                  className="text-xs px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white transition font-medium"
+                                >
+                                  {forcingId === post.id ? "Analisando..." : "Forçar análise"}
+                                </button>
+                              )}
                               {post.permalink && (
                                 <a
                                   href={post.permalink}
