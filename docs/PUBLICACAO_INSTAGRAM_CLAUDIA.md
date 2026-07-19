@@ -96,14 +96,15 @@ Atualizado em 18/07/2026:
   - `username`: `claudiaramalhocrochet`
   - `name`: `Cláudia Ramalho | Crochê autoral`
   - `media_count`: `2`
+- Validação de permissão de publicação aprovada em `17841419257522558/content_publishing_limit`.
+- Resposta de publicação: `quota_usage: 0`.
 
 ## O que falta fazer
 
-1. Validar `instagram_business_account.id` e permissão de publicação no Graph API Explorer.
-2. Salvar `access_token` e `instagram_business_account.id` no vault da cliente.
-3. Conferir o painel de prontidão.
-4. Fazer primeira publicação de teste.
-5. Rodar coleta de Instagram após publicação.
+1. Salvar `access_token` e `instagram_business_account.id` no vault da cliente.
+2. Conferir o painel de prontidão.
+3. Fazer primeira publicação de teste.
+4. Rodar coleta de Instagram após publicação.
 
 ## Roteiro guiado da chamada
 
@@ -210,10 +211,10 @@ Não registrar tokens. Registrar apenas metadados operacionais:
 
 | Campo | Valor |
 |---|---|
-| Página Facebook usada | Pendente |
+| Página Facebook usada | Cláudia Ramalho Crochê |
 | Page ID | Pendente |
-| IG User ID | Pendente |
-| Tipo da conta IG | Pendente |
+| IG User ID | `17841419257522558` |
+| Tipo da conta IG | Profissional/Business confirmado no Instagram |
 | Token salvo no vault | Pendente |
 | Prontidão 100% aprovada | Pendente |
 | Primeiro post publicado | Pendente |

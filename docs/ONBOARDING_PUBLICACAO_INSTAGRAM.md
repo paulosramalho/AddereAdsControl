@@ -177,6 +177,18 @@ Depois validar permissão de publicação:
 GET https://graph.facebook.com/v22.0/<IG_USER_ID>/content_publishing_limit?access_token=<PAGE_ACCESS_TOKEN>
 ```
 
+Resposta esperada:
+
+```json
+{
+  "data": [
+    {
+      "quota_usage": 0
+    }
+  ]
+}
+```
+
 Se o segundo endpoint falhar, não considerar a conta pronta. A falha normalmente indica token sem `instagram_content_publish`, app sem acesso aprovado, Página/Instagram errado ou usuário sem permissão.
 
 ## Passo 5 — Salvar no Addere Ads Control
