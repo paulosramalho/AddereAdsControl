@@ -2,6 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import prisma from "../lib/prisma.js";
 import { encrypt, decrypt } from "../lib/crypto.js";
+import { fetchMetaGraph, metaGraphErrorToHealth } from "../lib/metaGraph.js";
 import { requireAuth, requireSuperAdmin } from "../middleware/auth.js";
 import { validateBody } from "../middleware/validate.js";
 
@@ -50,23 +51,41 @@ router.put("/:platform/:key", validateBody(upsertSchema), async (req, res) => {
 
 router.get("/instagram/health", async (req, res) => {
   const { clientId } = req.params;
-  const cred = await prisma.clientCredential.findUnique({
-    where: { clientId_platform_key: { clientId, platform: "INSTAGRAM", key: "access_token" } },
+  const credentials = await prisma.clientCredential.findMany({
+    where: { clientId, platform: "INSTAGRAM", key: { in: ["access_token", "user_id"] } },
   });
-  if (!cred) return res.json({ status: "missing" });
+  const byKey = Object.fromEntries(credentials.map((c) => [c.key, c]));
+  const accessTokenCred = byKey.access_token ?? null;
+  const userIdCred = byKey.user_id ?? null;
+  if (!accessTokenCred) return res.json({ status: "missing" });
+
+  if (accessTokenCred.expiresAt && accessTokenCred.expiresAt <= new Date()) {
+    return res.json({ status: "expired", error: "Data de expiração cadastrada já passou" });
+  }
 
   let token;
-  try { token = decrypt(cred.value); } catch {
+  let userId = null;
+  try { token = decrypt(accessTokenCred.value); } catch {
     return res.json({ status: "error", error: "Erro ao decifrar credencial" });
+  }
+  try { if (userIdCred) userId = decrypt(userIdCred.value); } catch {
+    return res.json({ status: "error", error: "Erro ao decifrar ID do Instagram" });
   }
 
   try {
-    const r = await fetch(`https://graph.facebook.com/v22.0/me?fields=id,name&access_token=${token}`);
-    const data = await r.json();
+    const path = userId
+      ? `${encodeURIComponent(userId)}?fields=id,username,name,media_count`
+      : "me?fields=id,name";
+    const { data } = await fetchMetaGraph(path, token);
     if (data.error) {
-      return res.json({ status: "expired", error: data.error.message });
+      return res.json(metaGraphErrorToHealth(data.error));
     }
-    return res.json({ status: "valid", accountId: data.id, accountName: data.name });
+    return res.json({
+      status: "valid",
+      accountId: data.id,
+      accountName: data.username ?? data.name,
+      accountUsername: data.username ?? null,
+    });
   } catch {
     return res.json({ status: "error", error: "Falha ao contatar a API do Instagram" });
   }

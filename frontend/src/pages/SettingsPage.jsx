@@ -53,6 +53,26 @@ const PLATFORM_BADGE = {
   RESEND:    "bg-emerald-900/40 text-emerald-300",
 };
 
+const IG_HEALTH_CLASS = {
+  valid: "bg-emerald-900/20 text-emerald-300",
+  expired: "bg-red-900/20 text-red-300",
+  invalid: "bg-red-900/20 text-red-300",
+  missing: "bg-slate-700/30 text-slate-400",
+  permission: "bg-amber-900/20 text-amber-300",
+  error: "bg-amber-900/20 text-amber-300",
+};
+
+function getIgHealthMessage(health) {
+  if (health.status === "valid") {
+    return `Token válido - conta: ${health.accountName} (${health.accountId})`;
+  }
+  if (health.status === "expired") return `Token expirado: ${health.error}`;
+  if (health.status === "permission") return `Permissão ausente: ${health.error}`;
+  if (health.status === "invalid") return `Token inválido: ${health.error}`;
+  if (health.status === "missing") return "Token não configurado";
+  return `Erro: ${health.error}`;
+}
+
 function CredentialField({ clientId, platform, keyName, label, hint, savedAt, onChanged }) {
   const { addToast } = useToast();
   const [value, setValue] = useState("");
@@ -323,16 +343,8 @@ export default function SettingsPage() {
             </div>
 
             {platform === "INSTAGRAM" && igHealth && (
-              <div className={`px-5 py-2 text-xs border-b border-slate-700/40 ${
-                igHealth.status === "valid" ? "bg-emerald-900/20 text-emerald-300" :
-                igHealth.status === "expired" ? "bg-red-900/20 text-red-300" :
-                igHealth.status === "missing" ? "bg-slate-700/30 text-slate-400" :
-                "bg-amber-900/20 text-amber-300"
-              }`}>
-                {igHealth.status === "valid" && `Token válido — conta: ${igHealth.accountName} (${igHealth.accountId})`}
-                {igHealth.status === "expired" && `Token expirado: ${igHealth.error}`}
-                {igHealth.status === "missing" && "Token não configurado"}
-                {igHealth.status === "error" && `Erro: ${igHealth.error}`}
+              <div className={`px-5 py-2 text-xs border-b border-slate-700/40 ${IG_HEALTH_CLASS[igHealth.status] ?? IG_HEALTH_CLASS.error}`}>
+                {getIgHealthMessage(igHealth)}
               </div>
             )}
 

@@ -22,6 +22,8 @@ const EMPTY = {
 const IG_STATUS = {
   valid:   { label: "Token OK",       cls: "bg-emerald-900/40 text-emerald-300" },
   expired: { label: "Token expirado", cls: "bg-red-900/40 text-red-300" },
+  permission: { label: "Sem permissão IG", cls: "bg-amber-900/40 text-amber-300" },
+  invalid: { label: "Token inválido", cls: "bg-red-900/40 text-red-300" },
   missing: { label: "Sem token IG",   cls: "bg-slate-700 text-slate-400" },
   error:   { label: "Erro ao checar", cls: "bg-amber-900/40 text-amber-300" },
 };
@@ -164,7 +166,10 @@ export default function ClientsPage() {
                 const info = IG_STATUS[h.status] ?? IG_STATUS.error;
                 return (
                   <div className="flex items-center justify-between gap-2">
-                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${info.cls}`}>
+                    <span
+                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${info.cls}`}
+                      title={h.error ?? info.label}
+                    >
                       <span className="w-1.5 h-1.5 rounded-full bg-current opacity-80" />
                       {info.label}
                     </span>

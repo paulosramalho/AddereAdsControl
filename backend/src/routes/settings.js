@@ -2,6 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import prisma from "../lib/prisma.js";
 import { encrypt, decrypt } from "../lib/crypto.js";
+import { fetchMetaGraph, metaGraphErrorToHealth } from "../lib/metaGraph.js";
 import { requireAuth, requireSameClient, requireAdminOrSuper, requireFeature } from "../middleware/auth.js";
 import { validateBody } from "../middleware/validate.js";
 import { planHasFeature } from "../lib/planFeatures.js";
@@ -11,8 +12,6 @@ const router = Router({ mergeParams: true });
 router.use(requireAuth, requireSameClient, requireAdminOrSuper, requireFeature("settings"));
 
 const ALLOWED_PLATFORMS = ["INSTAGRAM", "META_ADS", "GOOGLE_ADS", "ANTHROPIC", "RESEND"];
-const FB_BASE = "https://graph.facebook.com/v22.0";
-
 router.get("/credentials", async (req, res) => {
   const { clientId } = req.params;
   const creds = await prisma.clientCredential.findMany({
@@ -64,20 +63,38 @@ router.delete("/credentials/:platform/:key", async (req, res) => {
 
 router.get("/credentials/instagram/health", async (req, res) => {
   const { clientId } = req.params;
-  const cred = await prisma.clientCredential.findUnique({
-    where: { clientId_platform_key: { clientId, platform: "INSTAGRAM", key: "access_token" } },
+  const credentials = await prisma.clientCredential.findMany({
+    where: { clientId, platform: "INSTAGRAM", key: { in: ["access_token", "user_id"] } },
   });
-  if (!cred) return res.json({ status: "missing" });
+  const byKey = Object.fromEntries(credentials.map((c) => [c.key, c]));
+  const accessTokenCred = byKey.access_token ?? null;
+  const userIdCred = byKey.user_id ?? null;
+  if (!accessTokenCred) return res.json({ status: "missing" });
+
+  if (accessTokenCred.expiresAt && accessTokenCred.expiresAt <= new Date()) {
+    return res.json({ status: "expired", error: "Data de expiração cadastrada já passou" });
+  }
 
   let token;
-  try { token = decrypt(cred.value); } catch {
+  let userId = null;
+  try { token = decrypt(accessTokenCred.value); } catch {
     return res.json({ status: "error", error: "Erro ao decifrar credencial" });
   }
+  try { if (userIdCred) userId = decrypt(userIdCred.value); } catch {
+    return res.json({ status: "error", error: "Erro ao decifrar ID do Instagram" });
+  }
   try {
-    const r = await fetch(`${FB_BASE}/me?fields=id,name&access_token=${token}`);
-    const data = await r.json();
-    if (data.error) return res.json({ status: "expired", error: data.error.message });
-    return res.json({ status: "valid", accountId: data.id, accountName: data.name });
+    const path = userId
+      ? `${encodeURIComponent(userId)}?fields=id,username,name,media_count`
+      : "me?fields=id,name";
+    const { data } = await fetchMetaGraph(path, token);
+    if (data.error) return res.json(metaGraphErrorToHealth(data.error));
+    return res.json({
+      status: "valid",
+      accountId: data.id,
+      accountName: data.username ?? data.name,
+      accountUsername: data.username ?? null,
+    });
   } catch {
     return res.json({ status: "error", error: "Falha ao contatar a API do Instagram" });
   }
@@ -113,38 +130,53 @@ router.get("/publishing-readiness", async (req, res) => {
     tokenHealth = { status: "error", error: "Erro ao decifrar credencial do Instagram" };
   }
 
-  if (accessToken) {
+  if (accessTokenCred?.expiresAt && accessTokenCred.expiresAt <= new Date()) {
+    tokenHealth = { status: "expired", error: "Data de expiração cadastrada já passou" };
+  } else if (accessToken) {
     try {
-      const tokenRes = await fetch(`${FB_BASE}/me?fields=id,name&access_token=${accessToken}`);
-      const tokenData = await tokenRes.json();
-      tokenHealth = tokenData.error
-        ? { status: "expired", error: tokenData.error.message }
-        : { status: "valid", accountId: tokenData.id, accountName: tokenData.name };
+      const path = userId
+        ? `${encodeURIComponent(userId)}?fields=id,username,name,media_count`
+        : "me?fields=id,name";
+      const { data: tokenData } = await fetchMetaGraph(path, accessToken);
+      if (tokenData.error) {
+        const health = metaGraphErrorToHealth(tokenData.error);
+        tokenHealth = health;
+        if (userId) igAccount = health;
+      } else {
+        tokenHealth = {
+          status: "valid",
+          accountId: tokenData.id,
+          accountName: tokenData.username ?? tokenData.name,
+        };
+        if (userId) igAccount = { status: "valid", data: tokenData };
+      }
     } catch {
       tokenHealth = { status: "error", error: "Falha ao contatar a API da Meta" };
     }
   }
 
   if (accessToken && userId && tokenHealth.status === "valid") {
-    try {
-      const accountParams = new URLSearchParams({
-        fields: "id,username,name,media_count",
-        access_token: accessToken,
-      });
-      const accountRes = await fetch(`${FB_BASE}/${userId}?${accountParams}`);
-      const accountData = await accountRes.json();
-      igAccount = accountData.error
-        ? { status: "error", error: accountData.error.message }
-        : { status: "valid", data: accountData };
-    } catch {
-      igAccount = { status: "error", error: "Falha ao verificar a conta Instagram" };
+    if (igAccount.status !== "valid") {
+      try {
+        const { data: accountData } = await fetchMetaGraph(
+          `${encodeURIComponent(userId)}?fields=id,username,name,media_count`,
+          accessToken
+        );
+        igAccount = accountData.error
+          ? metaGraphErrorToHealth(accountData.error)
+          : { status: "valid", data: accountData };
+      } catch {
+        igAccount = { status: "error", error: "Falha ao verificar a conta Instagram" };
+      }
     }
 
     try {
-      const limitRes = await fetch(`${FB_BASE}/${userId}/content_publishing_limit?access_token=${accessToken}`);
-      const limitData = await limitRes.json();
+      const { data: limitData } = await fetchMetaGraph(
+        `${encodeURIComponent(userId)}/content_publishing_limit`,
+        accessToken
+      );
       publishLimit = limitData.error
-        ? { status: "error", error: limitData.error.message }
+        ? metaGraphErrorToHealth(limitData.error)
         : { status: "valid", data: limitData.data ?? [] };
     } catch {
       publishLimit = { status: "error", error: "Falha ao verificar limite de publicação" };
