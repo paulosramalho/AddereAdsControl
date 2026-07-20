@@ -2,6 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import prisma from "../lib/prisma.js";
 import { encrypt, decrypt } from "../lib/crypto.js";
+import { toPublicCredential } from "../lib/credentialDisplay.js";
 import { fetchMetaGraph, metaGraphErrorToHealth } from "../lib/metaGraph.js";
 import { requireAuth, requireSameClient, requireAdminOrSuper, requireFeature } from "../middleware/auth.js";
 import { validateBody } from "../middleware/validate.js";
@@ -16,10 +17,10 @@ router.get("/credentials", async (req, res) => {
   const { clientId } = req.params;
   const creds = await prisma.clientCredential.findMany({
     where: { clientId, platform: { in: ALLOWED_PLATFORMS } },
-    select: { id: true, platform: true, key: true, expiresAt: true, issuedAt: true, updatedAt: true },
+    select: { id: true, platform: true, key: true, value: true, expiresAt: true, issuedAt: true, updatedAt: true },
     orderBy: [{ platform: "asc" }, { key: "asc" }],
   });
-  res.json({ ok: true, credentials: creds });
+  res.json({ ok: true, credentials: creds.map(toPublicCredential) });
 });
 
 const upsertSchema = z.object({

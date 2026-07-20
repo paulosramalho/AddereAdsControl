@@ -166,6 +166,14 @@ function CredentialField({ clientId, platform, keyName, label, hint, credential,
           </button>
         </div>
       </div>
+      {!credential?.isSensitive && credential?.displayValue !== null && credential?.displayValue !== undefined && (
+        <p className="text-xs text-slate-300 break-all">
+          {credential.displayValue === "" ? "(vazio)" : credential.displayValue}
+        </p>
+      )}
+      {credential?.issuedAt && !showInput && (
+        <p className="text-xs text-slate-400">emitido {fmtDateTimeSeconds(credential.issuedAt)}</p>
+      )}
       {credential?.expiresAt && !showInput && (
         <p className="text-xs text-amber-400">expira {fmtDateTimeSeconds(credential.expiresAt)}</p>
       )}

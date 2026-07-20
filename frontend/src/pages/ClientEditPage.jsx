@@ -421,10 +421,15 @@ export default function ClientEditPage() {
           <div className="border-t border-slate-700 pt-3 divide-y divide-slate-700">
             {credentials.map((c) => (
               <div key={`${c.platform}-${c.key}`} className="flex items-center justify-between py-2.5 text-sm">
-                <div>
+                <div className="min-w-0 pr-3">
                   <span className="text-slate-400 text-xs font-medium">{c.platform}</span>
                   <span className="text-slate-600 mx-1">/</span>
                   <span className="text-white">{c.key}</span>
+                  {!c.isSensitive && c.displayValue !== null && (
+                    <span className="ml-2 text-xs text-slate-300 break-all">
+                      {c.displayValue === "" ? "(vazio)" : c.displayValue}
+                    </span>
+                  )}
                   {c.issuedAt && (
                     <span className="ml-2 text-xs text-slate-400">
                       emitido {fmtDateTimeSeconds(c.issuedAt)}
