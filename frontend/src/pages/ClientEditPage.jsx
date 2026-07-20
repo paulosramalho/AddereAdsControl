@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { api } from "../lib/api.js";
 import { useToast } from "../components/Toast.jsx";
 import { ConfirmModal } from "../components/ConfirmModal.jsx";
+import { dateTimeLocalToIso, fmtDateTimeSeconds, isoToDateTimeLocal } from "../lib/formatters.js";
 
 const PLATFORMS = ["GOOGLE_ADS", "META_ADS", "INSTAGRAM", "ANTHROPIC", "RESEND"];
 const CLIENT_STATUS_LABEL = { TRIAL: "Trial", ACTIVE: "Ativo", SUSPENDED: "Suspenso" };
@@ -14,6 +15,7 @@ const PLATFORM_KEYS = {
   ANTHROPIC: ["api_key", "youtube_api_key"],
   RESEND: ["api_key", "from_email"],
 };
+const EMPTY_CRED_FORM = { platform: "ANTHROPIC", key: "api_key", value: "", issuedAt: "", expiresAt: "" };
 
 export default function ClientEditPage() {
   const { clientId } = useParams();
@@ -32,7 +34,7 @@ export default function ClientEditPage() {
   const [form, setForm] = useState({});
   const [credentials, setCredentials] = useState([]);
   const [saving, setSaving] = useState(false);
-  const [credForm, setCredForm] = useState({ platform: "ANTHROPIC", key: "api_key", value: "" });
+  const [credForm, setCredForm] = useState(EMPTY_CRED_FORM);
   const [savingCred, setSavingCred] = useState(false);
   const [deletingCred, setDeletingCred] = useState({});
   const [confirmCred, setConfirmCred] = useState(null); // { platform, key }
@@ -112,12 +114,17 @@ export default function ClientEditPage() {
     if (!credForm.value) return;
     setSavingCred(true);
     try {
+      const payload = {
+        value: credForm.value,
+        issuedAt: dateTimeLocalToIso(credForm.issuedAt),
+        expiresAt: dateTimeLocalToIso(credForm.expiresAt),
+      };
       const res = await api.put(
         `/clients/${clientId}/credentials/${credForm.platform}/${credForm.key}`,
-        { value: credForm.value }
+        payload
       );
       if (res.ok) {
-        setCredForm({ platform: "GOOGLE_ADS", key: PLATFORM_KEYS["GOOGLE_ADS"][0], value: "" });
+        setCredForm({ platform: "GOOGLE_ADS", key: PLATFORM_KEYS["GOOGLE_ADS"][0], value: "", issuedAt: "", expiresAt: "" });
         await load();
         addToast("Credencial salva", "success");
       } else {
@@ -147,6 +154,14 @@ export default function ClientEditPage() {
     } finally {
       setDeletingCred((d) => ({ ...d, [dkey]: false }));
     }
+  }
+
+  function getCredentialMeta(platform, key) {
+    const credential = credentials.find((c) => c.platform === platform && c.key === key);
+    return {
+      issuedAt: isoToDateTimeLocal(credential?.issuedAt),
+      expiresAt: isoToDateTimeLocal(credential?.expiresAt),
+    };
   }
 
   async function saveUser(e) {
@@ -333,7 +348,9 @@ export default function ClientEditPage() {
                 value={credForm.platform}
                 onChange={(e) => {
                   const p = e.target.value;
-                  setCredForm((f) => ({ ...f, platform: p, key: PLATFORM_KEYS[p]?.[0] ?? "" }));
+                  const key = PLATFORM_KEYS[p]?.[0] ?? "";
+                  const meta = getCredentialMeta(p, key);
+                  setCredForm((f) => ({ ...f, platform: p, key, ...meta }));
                 }}
                 className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500"
               >
@@ -344,7 +361,11 @@ export default function ClientEditPage() {
               <label className="block text-xs text-slate-400 mb-1">Campo</label>
               <select
                 value={credForm.key}
-                onChange={(e) => setCredForm((f) => ({ ...f, key: e.target.value }))}
+                onChange={(e) => {
+                  const key = e.target.value;
+                  const meta = getCredentialMeta(credForm.platform, key);
+                  setCredForm((f) => ({ ...f, key, ...meta }));
+                }}
                 className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500"
               >
                 {(PLATFORM_KEYS[credForm.platform] ?? []).map((k) => (
@@ -362,6 +383,28 @@ export default function ClientEditPage() {
               placeholder="Valor da credencial"
               className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
             />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs text-slate-400 mb-1">Emitido em</label>
+              <input
+                type="datetime-local"
+                step="1"
+                value={credForm.issuedAt}
+                onChange={(e) => setCredForm((f) => ({ ...f, issuedAt: e.target.value }))}
+                className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-slate-400 mb-1">Expira em</label>
+              <input
+                type="datetime-local"
+                step="1"
+                value={credForm.expiresAt}
+                onChange={(e) => setCredForm((f) => ({ ...f, expiresAt: e.target.value }))}
+                className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500"
+              />
+            </div>
           </div>
           <div className="flex justify-end">
             <button
@@ -382,9 +425,14 @@ export default function ClientEditPage() {
                   <span className="text-slate-400 text-xs font-medium">{c.platform}</span>
                   <span className="text-slate-600 mx-1">/</span>
                   <span className="text-white">{c.key}</span>
+                  {c.issuedAt && (
+                    <span className="ml-2 text-xs text-slate-400">
+                      emitido {fmtDateTimeSeconds(c.issuedAt)}
+                    </span>
+                  )}
                   {c.expiresAt && (
                     <span className="ml-2 text-xs text-amber-400">
-                      expira {new Date(c.expiresAt).toLocaleDateString("pt-BR", { timeZone: "America/Belem" })}
+                      expira {fmtDateTimeSeconds(c.expiresAt)}
                     </span>
                   )}
                 </div>

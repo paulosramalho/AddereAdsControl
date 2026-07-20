@@ -3,6 +3,7 @@ import { api } from "../lib/api.js";
 import { decodePayload, getToken } from "../lib/auth.js";
 import { useToast } from "../components/Toast.jsx";
 import { AlertTriangle, CheckCircle2, RefreshCw } from "lucide-react";
+import { dateTimeLocalToIso, fmtDateTimeSeconds, isoToDateTimeLocal } from "../lib/formatters.js";
 
 const PLATFORMS = {
   INSTAGRAM: {
@@ -73,21 +74,35 @@ function getIgHealthMessage(health) {
   return `Erro: ${health.error}`;
 }
 
-function CredentialField({ clientId, platform, keyName, label, hint, savedAt, onChanged }) {
+function CredentialField({ clientId, platform, keyName, label, hint, credential, onChanged }) {
   const { addToast } = useToast();
   const [value, setValue] = useState("");
+  const [issuedAt, setIssuedAt] = useState("");
+  const [expiresAt, setExpiresAt] = useState("");
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [showInput, setShowInput] = useState(false);
+
+  useEffect(() => {
+    if (!showInput) return;
+    setIssuedAt(isoToDateTimeLocal(credential?.issuedAt));
+    setExpiresAt(isoToDateTimeLocal(credential?.expiresAt));
+  }, [showInput, credential?.issuedAt, credential?.expiresAt]);
 
   async function save() {
     if (!value.trim()) return;
     setSaving(true);
     try {
-      const res = await api.put(`/clients/${clientId}/settings/credentials/${platform}/${keyName}`, { value });
+      const res = await api.put(`/clients/${clientId}/settings/credentials/${platform}/${keyName}`, {
+        value,
+        issuedAt: dateTimeLocalToIso(issuedAt),
+        expiresAt: dateTimeLocalToIso(expiresAt),
+      });
       if (res.ok) {
         addToast(`${label} salvo`, "success");
         setValue("");
+        setIssuedAt("");
+        setExpiresAt("");
         setShowInput(false);
         await onChanged?.();
       } else {
@@ -129,12 +144,12 @@ function CredentialField({ clientId, platform, keyName, label, hint, savedAt, on
           <span className="text-xs text-slate-500 ml-2">{hint}</span>
         </div>
         <div className="flex items-center gap-2">
-          {savedAt ? (
+          {credential?.updatedAt ? (
             <span className="text-xs text-emerald-400">● Configurado</span>
           ) : (
             <span className="text-xs text-slate-500">○ Não configurado</span>
           )}
-          {savedAt && !showInput && (
+          {credential?.updatedAt && !showInput && (
             <button
               onClick={remove}
               disabled={deleting}
@@ -147,27 +162,54 @@ function CredentialField({ clientId, platform, keyName, label, hint, savedAt, on
             onClick={() => setShowInput((s) => !s)}
             className="text-xs text-blue-400 hover:text-blue-300 transition"
           >
-            {showInput ? "Cancelar" : savedAt ? "Atualizar" : "Configurar"}
+            {showInput ? "Cancelar" : credential?.updatedAt ? "Atualizar" : "Configurar"}
           </button>
         </div>
       </div>
+      {credential?.expiresAt && !showInput && (
+        <p className="text-xs text-amber-400">expira {fmtDateTimeSeconds(credential.expiresAt)}</p>
+      )}
       {showInput && (
-        <div className="flex gap-2">
-          <input
-            type={isSensitive ? "password" : "text"}
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            placeholder={`Novo valor para ${label}…`}
-            className="flex-1 bg-slate-700 border border-slate-600 rounded-lg px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
-            autoFocus
-          />
-          <button
-            onClick={save}
-            disabled={saving || !value.trim()}
-            className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-sm transition"
-          >
-            {saving ? "…" : "Salvar"}
-          </button>
+        <div className="space-y-2">
+          <div className="flex gap-2">
+            <input
+              type={isSensitive ? "password" : "text"}
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+              placeholder={`Novo valor para ${label}…`}
+              className="flex-1 bg-slate-700 border border-slate-600 rounded-lg px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+              autoFocus
+            />
+            <button
+              onClick={save}
+              disabled={saving || !value.trim()}
+              className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-sm transition"
+            >
+              {saving ? "…" : "Salvar"}
+            </button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <div>
+              <label className="block text-xs text-slate-500 mb-1">Emitido em</label>
+              <input
+                type="datetime-local"
+                step="1"
+                value={issuedAt}
+                onChange={(e) => setIssuedAt(e.target.value)}
+                className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-slate-500 mb-1">Expira em</label>
+              <input
+                type="datetime-local"
+                step="1"
+                value={expiresAt}
+                onChange={(e) => setExpiresAt(e.target.value)}
+                className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-blue-500"
+              />
+            </div>
+          </div>
         </div>
       )}
     </div>
@@ -302,8 +344,8 @@ export default function SettingsPage() {
     }
   }
 
-  function savedAt(platform, key) {
-    return creds.find((c) => c.platform === platform && c.key === key)?.updatedAt ?? null;
+  function findCredential(platform, key) {
+    return creds.find((c) => c.platform === platform && c.key === key) ?? null;
   }
 
   if (!clientId) return (
@@ -349,24 +391,27 @@ export default function SettingsPage() {
             )}
 
             <div className="px-5 py-4 space-y-4">
-              {keys.map(({ key, label: keyLabel, hint }) => (
-                <CredentialField
-                  key={`${platform}-${key}`}
-                  clientId={clientId}
-                  platform={platform}
-                  keyName={key}
-                  label={keyLabel}
-                  hint={hint}
-                  savedAt={savedAt(platform, key)}
-                  onChanged={async () => {
-                    await loadCredentials();
-                    if (platform === "INSTAGRAM") {
-                      setIgHealth(null);
-                      await loadPublishingReadiness();
-                    }
-                  }}
-                />
-              ))}
+              {keys.map(({ key, label: keyLabel, hint }) => {
+                const credential = findCredential(platform, key);
+                return (
+                  <CredentialField
+                    key={`${platform}-${key}`}
+                    clientId={clientId}
+                    platform={platform}
+                    keyName={key}
+                    label={keyLabel}
+                    hint={hint}
+                    credential={credential}
+                    onChanged={async () => {
+                      await loadCredentials();
+                      if (platform === "INSTAGRAM") {
+                        setIgHealth(null);
+                        await loadPublishingReadiness();
+                      }
+                    }}
+                  />
+                );
+              })}
             </div>
           </div>
         ))
