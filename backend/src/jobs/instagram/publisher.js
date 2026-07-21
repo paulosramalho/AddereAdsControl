@@ -8,8 +8,11 @@ const _nextDueCache = new Map();
 
 // Chamar ao criar/alterar/cancelar um agendamento — força o publisher a
 // reconsultar o banco no próximo tick. Mesmo processo Node do scheduler.
+// Sem clientId, limpa o cache de todos os clientes (invalidação manual/admin
+// quando um post é inserido por fora da rota, ex.: script direto no Neon).
 export function invalidatePublisherCache(clientId) {
-  _nextDueCache.delete(clientId);
+  if (clientId) _nextDueCache.delete(clientId);
+  else _nextDueCache.clear();
 }
 
 async function getCred(clientId, key) {

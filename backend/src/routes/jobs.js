@@ -5,7 +5,7 @@ import { runJob } from "../jobs/engine/runner.js";
 import { collectAds } from "../jobs/ads/collection.js";
 import { collectInstagram } from "../jobs/instagram/collection.js";
 import { analyzeInstagram } from "../jobs/instagram/analysis.js";
-import { publishScheduledPosts } from "../jobs/instagram/publisher.js";
+import { publishScheduledPosts, invalidatePublisherCache } from "../jobs/instagram/publisher.js";
 import { generateTrending } from "../jobs/content/trending.js";
 import { generateSuggestions } from "../jobs/content/suggestions.js";
 import { generateBoost } from "../jobs/content/boost.js";
@@ -69,6 +69,17 @@ router.post("/:jobName/run", async (req, res) => {
   }
 
   res.json({ ok: true });
+});
+
+// Flush do cache em memória do publisher (_nextDueCache). Necessário quando um
+// ScheduledPost é inserido por fora das rotas (script direto no Neon) — nesse
+// caso o publisher não vê o post novo até o processo reiniciar. Zero toque no
+// banco: só força o próximo tick a reconsultar. Opcional clientId no body limita
+// a um cliente; sem ele, limpa todos.
+router.post("/publisher/invalidate-cache", requireSuperAdmin, (req, res) => {
+  const { clientId } = req.body ?? {};
+  invalidatePublisherCache(clientId || undefined);
+  res.json({ ok: true, invalidated: clientId || "all" });
 });
 
 router.get("/", requireSuperAdmin, (_req, res) => {
