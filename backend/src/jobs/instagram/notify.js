@@ -1,6 +1,7 @@
 import { Resend } from "resend";
 import prisma from "../../lib/prisma.js";
 import { decrypt } from "../../lib/crypto.js";
+import { truncateSafe } from "../../lib/text.js";
 
 async function getNotifyConfig(clientId) {
   const creds = await prisma.clientCredential.findMany({
@@ -56,7 +57,7 @@ function postCard(post) {
   const color = isHigh ? "#059669" : "#dc2626";
   const label = isHigh ? "Alto desempenho" : "Baixo desempenho";
   const caption = post.caption
-    ? post.caption.slice(0, 140) + (post.caption.length > 140 ? "…" : "")
+    ? truncateSafe(post.caption, 140) + (Array.from(post.caption).length > 140 ? "…" : "")
     : "(sem legenda)";
 
   return `

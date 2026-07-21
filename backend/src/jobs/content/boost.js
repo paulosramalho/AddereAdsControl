@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import prisma from "../../lib/prisma.js";
 import { decrypt } from "../../lib/crypto.js";
+import { truncateSafe } from "../../lib/text.js";
 
 async function getAnthropicKey(clientId) {
   const c = await prisma.clientCredential.findUnique({
@@ -51,7 +52,7 @@ export async function generateBoost(client) {
   const postList = posts
     .map(
       (p, i) =>
-        `Post ${i + 1}: "${p.caption?.slice(0, 100) ?? "(sem legenda)"}"
+        `Post ${i + 1}: "${truncateSafe(p.caption, 100) ?? "(sem legenda)"}"
   Score: ${p.analysis?.score ?? "N/A"}/10 | Curtidas: ${p.likes} | Comentários: ${p.comments} | Alcance: ${p.reach}`
     )
     .join("\n\n");
@@ -103,7 +104,7 @@ Retorne JSON:
       data: {
         clientId: client.id,
         postId: post.postId,
-        postCaption: post.caption?.slice(0, 500) ?? null,
+        postCaption: truncateSafe(post.caption, 500) ?? null,
         suggestedBudget: Math.round(Number(s.suggestedBudgetBRL ?? 0) * 100),
         estimatedLeads: Math.round(Number(s.estimatedLeads ?? 0)),
         reasoning: s.reasoning ?? null,

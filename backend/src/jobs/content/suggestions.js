@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import prisma from "../../lib/prisma.js";
 import { decrypt } from "../../lib/crypto.js";
+import { truncateSafe } from "../../lib/text.js";
 
 async function getAnthropicKey(clientId) {
   const c = await prisma.clientCredential.findUnique({
@@ -35,7 +36,7 @@ export async function generateSuggestions(client) {
   const postSummaries = analyses
     .map(
       (a, i) =>
-        `Post ${i + 1}: "${a.post.caption?.slice(0, 120) ?? "(sem legenda)"}"
+        `Post ${i + 1}: "${truncateSafe(a.post.caption, 120) ?? "(sem legenda)"}"
   Score: ${a.score}/10 | Curtidas: ${a.post.likes} | Alcance: ${a.post.reach}
   Pontos fortes: ${a.strengths.join(", ")}
   Análise: ${a.reasoning ?? ""}`

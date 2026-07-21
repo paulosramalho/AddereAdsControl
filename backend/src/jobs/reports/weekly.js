@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import prisma from "../../lib/prisma.js";
 import { decrypt } from "../../lib/crypto.js";
+import { truncateSafe } from "../../lib/text.js";
 
 async function getAnthropicKey(clientId) {
   const c = await prisma.clientCredential.findUnique({
@@ -63,7 +64,7 @@ export async function generateWeeklyReport(client) {
   const igSummary = igPosts
     .map(
       (p) =>
-        `- "${p.caption?.slice(0, 80) ?? "(sem legenda)"}" — ${p.likes} curtidas, alcance ${p.reach}, score ${p.analysis?.score ?? "N/A"}/10`
+        `- "${truncateSafe(p.caption, 80) ?? "(sem legenda)"}" — ${p.likes} curtidas, alcance ${p.reach}, score ${p.analysis?.score ?? "N/A"}/10`
     )
     .join("\n");
 
